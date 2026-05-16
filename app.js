@@ -14,6 +14,20 @@ const Home = {
       <div class="code">
         {{ expression }}
       </div>
+
+      <h3>Evolution History</h3>
+
+      <div
+        v-for="(item, index) in history"
+        :key="index"
+        class="code"
+        style="margin-top:8px"
+      >
+        Generation {{ item.generation }}
+        | Fitness: {{ item.fitness }}
+        | {{ item.expression }}
+      </div>
+
     </div>
 
     <canvas ref="canvas" width="600" height="300"></canvas>
@@ -40,6 +54,8 @@ const Home = {
   data() {
     return {
       worker: null,
+      generation: 0,
+      history: [],
       best: {
         left: 'x',
         op: '+',
@@ -106,8 +122,20 @@ const Home = {
         const msg = e.data;
 
         if (msg.type === 'update') {
+          this.generation++;
+
           this.best = msg.best;
           this.bestFitness = msg.fitness;
+
+          this.history.unshift({
+            generation: this.generation,
+            fitness: this.bestFitness,
+            expression: `${this.best.left} ${this.best.op} ${this.best.right}`
+          });
+
+          if (this.history.length > 20) {
+            this.history.pop();
+          }
 
           this.drawCanvas();
           this.saveBest();
