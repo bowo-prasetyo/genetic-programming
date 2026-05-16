@@ -221,6 +221,11 @@ function tournamentSelection(population, size = 5) {
 
 function crossover(a, b) {
 
+  // null safety
+  if (a == null) return clone(b);
+  if (b == null) return clone(a);
+
+  // terminal safety
   if (
     typeof a === 'string' ||
     typeof b === 'string'
@@ -230,7 +235,7 @@ function crossover(a, b) {
       : clone(b);
   }
 
-  // unary
+  // unary node handling
   if (a.child || b.child) {
 
     const source =
@@ -239,7 +244,7 @@ function crossover(a, b) {
     return clone(source);
   }
 
-  // binary
+  // binary node handling
   return {
     op: Math.random() < 0.5
       ? a.op
@@ -253,6 +258,41 @@ function crossover(a, b) {
 
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+function normalizeNode(node, depth = 0) {
+
+  if (typeof node === 'string') {
+    return node;
+  }
+
+  const unaryOps = ['sin'];
+
+  // unary operator
+  if (unaryOps.includes(node.op)) {
+
+    return {
+      op: node.op,
+      child: normalizeNode(
+        node.child || node.left || node.right || randomTree(depth + 1),
+        depth + 1
+      )
+    };
+  }
+
+  // binary operator
+  return {
+    op: node.op,
+    left: normalizeNode(
+      node.left || node.child || randomTree(depth + 1),
+      depth + 1
+    ),
+
+    right: normalizeNode(
+      node.right || randomTree(depth + 1),
+      depth + 1
+    )
+  };
 }
 
 function mutate(node, depth = 0) {
@@ -313,7 +353,7 @@ function mutate(node, depth = 0) {
       mutate(child.right, depth + 1);
   }
 
-  return child;
+  return normalizeNode(child, depth);
 }
 
 function treeToString(node) {
