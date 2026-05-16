@@ -109,16 +109,15 @@ function fitness(program) {
 
 function tournamentSelection(population, size = 5) {
   let best = null;
+  let bestScore = Infinity;
 
   for (let i = 0; i < size; i++) {
     const candidate = population[randomInt(population.length)];
+    const score = fitness(candidate).totalFitness;
 
-    if (
-      !best ||
-      fitness(candidate).totalFitness <
-        fitness(best).totalFitness
-    ) {
+    if (score < bestScore) {
       best = candidate;
+      bestScore = score;
     }
   }
 
@@ -261,7 +260,7 @@ function evolve() {
   }
 
   // Random immigrants
-  for (let i = 0; i < 20; i++) {
+  while (next.length < populationSize - 20) {
     next.push(randomTree());
   }
     
