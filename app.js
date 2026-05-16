@@ -91,6 +91,62 @@ const Home = {
       </div>
 
     </div>
+    
+    <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
+    
+      <h2>GP Rules Settings</h2>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Mutation Rate:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="mutationRate"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Crossover Rate:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="crossoverRate"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label><b>Elitism Rate:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="elitismRate"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label><b>Tournament Size:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="tournamentSize"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label><b>Tree Depth:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="treeDepth"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+
+    </div>
 
     <button @click="start">Start Evolution</button>
     <button @click="stop">Stop</button>
@@ -159,7 +215,12 @@ const Home = {
       populationSize: 100,
       minError: 0.1,      
       maxGenerations: 1000,      
-      enabledOperators: ['+', '-', '*']
+      enabledOperators: ['+', '-', '*'],
+      mutationRate: 0.1,
+      crossoverRate: 0.7,
+      elitismRate: 0.05,
+      tournamentSize: 5,
+      treeDepth: 4
     };
   },
 
@@ -250,7 +311,12 @@ const Home = {
           populationSize: this.populationSize,
           minError: this.minError,
           maxGenerations: this.maxGenerations,
-          operators: [...this.enabledOperators]
+          operators: [...this.enabledOperators],
+          mutationRate: this.mutationRate,
+          crossoverRate: this.crossoverRate,
+          elitismRate: this.elitismRate,
+          tournamentSize: this.tournamentSize,
+          treeDepth: this.treeDepth
         }
       });
     },
