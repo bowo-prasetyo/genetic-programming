@@ -1,8 +1,17 @@
+let targetFormula = "x*x + 2";
 let OPERATORS = ['+', '-', '*'];
 let maxGenerations = 1000;
 let populationSize = 100;
 let minX = -5;
 let maxX = 5;
+
+function safeEvalFormula(formula, x) {
+  try {
+    return Function('x', `return ${formula};`)(x);
+  } catch (e) {
+    return 0;
+  }
+}
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);
@@ -56,7 +65,7 @@ function fitness(program) {
 
   for (let x = minX; x <= maxX; x++) {
 
-    const expected = x * x + 2;
+    const expected = safeEvalFormula(targetFormula, x);
 
     const actual = evaluate(program, x);
 
@@ -256,6 +265,7 @@ onmessage = (e) => {
   
   if (msg.type === 'start') {
     initPopulation(populationSize);
+    targetFormula = msg.config.targetFormula;
     maxGenerations = msg.config.maxGenerations;
     populationSize = msg.config.populationSize;
     minX = msg.config.minX;
