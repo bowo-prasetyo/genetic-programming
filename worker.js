@@ -189,7 +189,7 @@ function evolve() {
 
   if (
     rawError <= 2 ||
-    generation >= 2000
+    generation >= maxGenerations
   ) {
   
     running = false;
@@ -246,9 +246,10 @@ function loop() {
 
 onmessage = (e) => {
   const msg = e.data;
-
+  
   if (msg.type === 'start') {
     initPopulation();
+    maxGenerations = msg.config.maxGenerations;
     running = true;
     loop();
   }
