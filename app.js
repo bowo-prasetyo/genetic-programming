@@ -374,7 +374,7 @@ const Home = {
 
       store.add({
         timestamp: Date.now(),
-        program: this.best,
+        program: JSON.parse(JSON.stringify(this.best)),
         fitness: this.bestFitness
       });
     },
