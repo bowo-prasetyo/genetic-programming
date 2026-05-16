@@ -1,6 +1,8 @@
 const OPERATORS = ['+', '-', '*'];
 let maxGenerations = 1000;
 let populationSize = 100;
+let minX = -5;
+let maxX = 5;
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);
@@ -52,7 +54,7 @@ function fitness(program) {
 
   let error = 0;
 
-  for (let x = -5; x <= 5; x++) {
+  for (let x = minX; x <= maxX; x++) {
 
     const expected = x * x + 2;
 
@@ -256,6 +258,8 @@ onmessage = (e) => {
     initPopulation(populationSize);
     maxGenerations = msg.config.maxGenerations;
     populationSize = msg.config.populationSize;
+    minX = msg.config.minX;
+    maxX = msg.config.maxX;
     running = true;
     loop();
   }
