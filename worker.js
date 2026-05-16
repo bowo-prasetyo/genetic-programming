@@ -5,6 +5,11 @@ let maxGenerations = 1000;
 let populationSize = 100;
 let minX = -5;
 let maxX = 5;
+let mutationRate = 0.1;
+let crossoverRate = 0.7;
+let elitismRate = 0.05;
+let tournamentSize = 5;
+let treeDepth = 4;
 
 function safeEvalFormula(formula, x) {
   try {
@@ -25,7 +30,7 @@ function randomTerminal() {
 }
 
 function randomTree(depth = 0) {
-  if (depth > 4 || Math.random() < 0.2) {
+  if (depth > treeDepth || Math.random() < 0.2) {
     return randomTerminal();
   }
 
@@ -48,6 +53,7 @@ function evaluate(node, x) {
     case '+': return left + right;
     case '-': return left - right;
     case '*': return left * right;
+    case '/': return left / right;
   }
 
   return 0;
@@ -130,7 +136,7 @@ function crossover(a, b, depth = 0) {
       : clone(b);
   }
 
-  if (Math.random() < 0.3) {
+  if (Math.random() < 1 - crossoverRate) {
     return clone(b);
   }
 
@@ -149,7 +155,7 @@ function clone(obj) {
 
 function mutate(node, depth = 0) {
   if (typeof node === 'string') {
-    if (Math.random() < 0.2) {
+    if (Math.random() < mutationRate) {
       return randomTerminal();
     }
 
@@ -165,7 +171,7 @@ function mutate(node, depth = 0) {
   child.left = mutate(child.left, depth + 1);
   child.right = mutate(child.right, depth + 1);
 
-  if (Math.random() < 0.05 && depth < 2) {
+  if (Math.random() < elitismRate && depth < 2) {
     return randomTree(depth);
   }
 
@@ -247,10 +253,10 @@ function evolve() {
   while (next.length < population.length - 20) {
 
     const parentA =
-      tournamentSelection(population);
+      tournamentSelection(population, tournamentSize);
 
     const parentB =
-      tournamentSelection(population);
+      tournamentSelection(population, tournamentSize);
 
     let child =
       crossover(parentA, parentB);
@@ -295,6 +301,11 @@ onmessage = (e) => {
     if (!OPERATORS || OPERATORS.length === 0) {
       OPERATORS = ['+', '-', '*'];
     }
+    mutationRate = msg.config.mutationRate;
+    crossoverRate = msg.config.crossoverRate;
+    elitismRate = msg.config.elitismRate;
+    tournamentSize = msg.config.tournamentSize;
+    treeDepth = msg.config.treeDepth;
     running = true;
     loop();
   }
