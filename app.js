@@ -113,7 +113,7 @@ const Home = {
       >
         Generation {{ item.generation }}
         | Fitness: {{ item.fitness }}
-        | Error: {{ item.rawError }}
+        | Error: {{ item.error }}
         | {{ item.expression }}
       </div>
 
@@ -228,6 +228,7 @@ const Home = {
           this.history.unshift({
             generation: msg.generation,
             fitness: this.bestFitness,
+            error: msg.rawError,
             expression: msg.expression
           });
 
