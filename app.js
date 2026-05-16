@@ -201,6 +201,8 @@ const Home = {
         this.worker.terminate();
       }
 
+      this.generation = 0;
+      this.history = [];
       this.worker = new Worker('worker.js');
 
       this.worker.onmessage = (e) => {
