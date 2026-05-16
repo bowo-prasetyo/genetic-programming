@@ -1,10 +1,16 @@
+const OP_ARITY = {
+  '+': 2,
+  '-': 2,
+  '*': 2,
+  '/': 2,
+  'sin': 1
+};
+
 let targetFormula = "x*x + 2";
 let OPERATORS = [
   { symbol: '+', arity: 2 },
   { symbol: '-', arity: 2 },
-  { symbol: '*', arity: 2 },
-  { symbol: '/', arity: 2 },
-  { symbol: 'sin', arity: 1 }
+  { symbol: '*', arity: 2 }
 ];
 let minError = 0.1;
 let maxGenerations = 1000;
@@ -435,6 +441,21 @@ function loop() {
   setTimeout(loop, 50);
 }
 
+function buildOperators(ops) {
+  const operators = [];
+  for (let i = 0; i < ops.length; i++) {
+    push({ symbol: ops[i], arity: OP_ARITY[ops[i]] });
+  }
+  if (!operators || operators.length === 0) {
+    return [
+      { symbol: '+', arity: 2 },
+      { symbol: '-', arity: 2 },
+      { symbol: '*', arity: 2 }
+    ];
+  }
+  return operators;
+}
+
 onmessage = (e) => {
   const msg = e.data;
   
@@ -446,10 +467,7 @@ onmessage = (e) => {
     populationSize = msg.config.populationSize;
     minX = msg.config.minX;
     maxX = msg.config.maxX;
-    OPERATORS = msg.config.operators;
-    if (!OPERATORS || OPERATORS.length === 0) {
-      OPERATORS = ['+', '-', '*'];
-    }
+    OPERATORS = buildOperators(msg.config.operators);
     mutationRate = msg.config.mutationRate;
     crossoverRate = msg.config.crossoverRate;
     elitismRate = msg.config.elitismRate;
