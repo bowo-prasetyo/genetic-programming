@@ -1,5 +1,6 @@
 const OPERATORS = ['+', '-', '*'];
 let maxGenerations = 1000;
+let populationSize = 100;
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);
@@ -252,8 +253,9 @@ onmessage = (e) => {
   const msg = e.data;
   
   if (msg.type === 'start') {
-    initPopulation();
+    initPopulation(populationSize);
     maxGenerations = msg.config.maxGenerations;
+    populationSize = msg.config.populationSize;
     running = true;
     loop();
   }
