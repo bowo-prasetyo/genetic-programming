@@ -30,7 +30,7 @@ function randomTerminal() {
 }
 
 function randomTree(depth = 0) {
-  if (depth > treeDepth || Math.random() < 0.2) {
+  if (depth >= treeDepth || Math.random() < 0.2) {
     return randomTerminal();
   }
 
@@ -164,14 +164,14 @@ function mutate(node, depth = 0) {
 
   const child = clone(node);
 
-  if (Math.random() < 0.15) {
+  if (Math.random() < mutationRate) {
     child.op = OPERATORS[randomInt(OPERATORS.length)];
   }
 
   child.left = mutate(child.left, depth + 1);
   child.right = mutate(child.right, depth + 1);
 
-  if (Math.random() < elitismRate && depth < 2) {
+  if (Math.random() < mutationRate && depth < 2) {
     return randomTree(depth);
   }
 
@@ -247,8 +247,12 @@ function evolve() {
   const next = [];
 
   // Elitism
-  next.push(clone(best));
-
+  const eliteCount = Math.floor(population.length * elitismRate);
+  
+  for (let i = 0; i < eliteCount; i++) {
+    next.push(clone(population[i]));
+  }
+  
   // Breed new population
   while (next.length < population.length - 20) {
 
@@ -257,11 +261,14 @@ function evolve() {
 
     const parentB =
       tournamentSelection(population, tournamentSize);
-
+    
     let child =
-      crossover(parentA, parentB);
+      Math.random() < crossoverRate
+        ? crossover(parentA, parentB)
+        : clone(parentA);
 
-    child = mutate(child);
+    if (Math.random() < mutationRate)
+      child = mutate(child);
 
     next.push(child);
   }
