@@ -274,9 +274,14 @@ function evolve() {
   }
 
   // Random immigrants
-  while (next.length < populationSize) {
+  const immigrantCount = Math.floor(populationSize * 0.1);
+  for (let i = 0; i < immigrantCount; i++) {
     next.push(randomTree());
   }
+  
+  while (next.length < populationSize) {
+    next.push(clone(population[randomInt(population.length)]));
+  } 
   
   population = next;
 }
