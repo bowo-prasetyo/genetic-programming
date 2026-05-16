@@ -289,7 +289,7 @@ function normalizeNode(node, depth = 0) {
     return node;
   }
 
-  const unaryOps = ['sin'];
+  const unaryOps = ['sin','cos','tan','asin','acos','atan','log','log2','log10','exp','sqrt','cbrt'];
 
   // unary operator
   if (unaryOps.includes(node.op)) {
