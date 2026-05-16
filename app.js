@@ -55,6 +55,16 @@ const Home = {
           style="width:120px; padding:8px; margin-left:10px;"
         />
       </div>
+
+      <div style="margin-bottom:10px;">
+        <label><b>Min Error:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="minError"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
     
       <div style="margin-bottom:10px;">
         <label><b>Operators:</b></label>
@@ -146,6 +156,7 @@ const Home = {
       minX: -5,
       maxX: 5,
       populationSize: 100,
+      minError: 0.1,      
       maxGenerations: 1000,      
       enabledOperators: ['+', '-', '*']
     };
@@ -235,6 +246,7 @@ const Home = {
           minX: this.minX,
           maxX: this.maxX,
           populationSize: this.populationSize,
+          minError: this.minError,
           maxGenerations: this.maxGenerations,
           operators: [...this.enabledOperators]
         }
