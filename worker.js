@@ -11,6 +11,20 @@ let elitismRate = 0.05;
 let tournamentSize = 5;
 let treeDepth = 4;
 
+const fitnessCache = new Map();
+
+function getFitness(node) {
+  const key = JSON.stringify(node);
+
+  if (fitnessCache.has(key)) {
+    return fitnessCache.get(key);
+  }
+
+  const f = fitness(node);
+  fitnessCache.set(key, f);
+  return f;
+}
+
 function safeEvalFormula(formula, x) {
   try {
     return Function('x', `return ${formula};`)(x);
@@ -97,7 +111,7 @@ function fitness(program) {
 
   const avgError = error / count;
 
-  const complexityPenalty = treeSize(program) * 0.0; //0.05-->0.0
+  const complexityPenalty = treeSize(program) * 0.01; 
 
   const total = avgError + complexityPenalty;
 
@@ -113,7 +127,7 @@ function tournamentSelection(population, size = 5) {
 
   for (let i = 0; i < size; i++) {
     const candidate = population[randomInt(population.length)];
-    const score = fitness(candidate).totalFitness;
+    const score = getFitness(candidate).totalFitness;
 
     if (score < bestScore) {
       best = candidate;
@@ -192,12 +206,12 @@ function evolve() {
 
   population.sort(
     (a, b) =>
-      fitness(a).totalFitness -
-      fitness(b).totalFitness
+      getFitness(a).totalFitness -
+      getFitness(b).totalFitness
   );
 
   const best = population[0];
-  const result = fitness(best);
+  const result = getFitness(best);
   const bestFitness =
     result.totalFitness;
   const rawError =
