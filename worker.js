@@ -10,6 +10,8 @@ let crossoverRate = 0.7;
 let elitismRate = 0.05;
 let tournamentSize = 5;
 let treeDepth = 4;
+let dataMode = 'formula';
+let dataset = [];
 
 const fitnessCache = new Map();
 
@@ -81,14 +83,43 @@ function treeSize(node) {
   return 1 + treeSize(node.left) + treeSize(node.right);
 }
 
+function generateFormulaSamples() {
+
+  const samples = [];
+
+  for (
+    let x = minX;
+    x <= maxX;
+    x++
+  ) {
+
+    const y =
+      safeEvalFormula(
+        targetFormula,
+        x
+      );
+
+    samples.push({ x, y });
+  }
+
+  return samples;
+}
+
 function fitness(program) {
 
   let error = 0;
   let count = 0;
 
-  for (let x = minX; x <= maxX; x++) {
+  const samples =
+  dataMode === 'dataset'
+    ? dataset
+    : generateFormulaSamples();
 
-    const expected = safeEvalFormula(targetFormula, x);
+  for (const sample of samples) {
+  
+    const x = sample.x;
+  
+    const expected = sample.y;
     const actual = evaluate(program, x);
 
     if (!Number.isFinite(expected) || !Number.isFinite(actual)) continue;
@@ -319,6 +350,8 @@ onmessage = (e) => {
     elitismRate = msg.config.elitismRate;
     tournamentSize = msg.config.tournamentSize;
     treeDepth = msg.config.treeDepth;
+    dataMode = msg.config.dataMode;
+    dataset = msg.config.dataset || [];
     running = true;
     loop();
   }
