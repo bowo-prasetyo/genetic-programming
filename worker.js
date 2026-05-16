@@ -66,6 +66,8 @@ function fitness(program) {
 
   for (let x = minX; x <= maxX; x++) {
 
+    if (Math.abs(x) < 1e-9) continue;
+    
     const expected = safeEvalFormula(targetFormula, x);
 
     const actual = evaluate(program, x);
