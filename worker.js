@@ -1,4 +1,5 @@
 const OPERATORS = ['+', '-', '*'];
+let maxGenerations = 1000;
 
 function randomInt(max) {
   return Math.floor(Math.random() * max);
@@ -47,19 +48,25 @@ function treeSize(node) {
 }
 
 function fitness(program) {
+
   let error = 0;
 
   for (let x = -5; x <= 5; x++) {
-    const expected = (x * x) * 2 + 2;
+
+    const expected = x * x + 2;
 
     const actual = evaluate(program, x);
 
     error += Math.abs(expected - actual);
   }
 
-  const complexityPenalty = treeSize(program) * 0.05;
+  const complexityPenalty =
+    treeSize(program) * 0.05;
 
-  return error + complexityPenalty;
+  return {
+    rawError: error,
+    totalFitness: error + complexityPenalty
+  };
 }
 
 function tournamentSelection(population, size = 5) {
@@ -70,7 +77,8 @@ function tournamentSelection(population, size = 5) {
 
     if (
       !best ||
-      fitness(candidate) < fitness(best)
+      fitness(candidate).totalFitness <
+        fitness(best).totalFitness
     ) {
       best = candidate;
     }
@@ -158,28 +166,39 @@ function evolve() {
   generation++;
 
   population.sort(
-    (a, b) => fitness(a) - fitness(b)
+    (a, b) =>
+      fitness(a).totalFitness -
+      fitness(b).totalFitness
   );
 
   const best = population[0];
-  const bestFitness = fitness(best);
+  const result = fitness(best);
+  const bestFitness =
+    result.totalFitness;
+  const rawError =
+    result.rawError;
 
   postMessage({
     type: 'update',
     best,
     fitness: bestFitness,
+    rawError: rawError,
     generation,
     expression: treeToString(best)
   });
 
-  if (bestFitness <= 0.5 || generation >= 2000) {
-
+  if (
+    rawError <= 2 ||
+    generation >= 2000
+  ) {
+  
     running = false;
 
     postMessage({
       type: 'finished',
       best,
       fitness: bestFitness,
+      rawError: rawError,
       generation,
       expression: treeToString(best)
     });
