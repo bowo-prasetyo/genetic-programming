@@ -1,5 +1,11 @@
 let targetFormula = "x*x + 2";
-let OPERATORS = ['+', '-', '*'];
+let OPERATORS = [
+  { symbol: '+', arity: 2 },
+  { symbol: '-', arity: 2 },
+  { symbol: '*', arity: 2 },
+  { symbol: '/', arity: 2 },
+  { symbol: 'sin', arity: 1 }
+];
 let minError = 0.1;
 let maxGenerations = 1000;
 let populationSize = 100;
@@ -46,24 +52,53 @@ function randomTerminal() {
 }
 
 function randomTree(depth = 0) {
+
   if (depth >= treeDepth || Math.random() < 0.2) {
     return randomTerminal();
   }
 
+  const op =
+    OPERATORS[randomInt(OPERATORS.length)];
+
+  if (op.arity === 1) {
+    return {
+      op: op.symbol,
+      child: randomTree(depth + 1)
+    };
+  }
+
   return {
-    op: OPERATORS[randomInt(OPERATORS.length)],
+    op: op.symbol,
     left: randomTree(depth + 1),
     right: randomTree(depth + 1)
   };
 }
 
 function evaluate(node, x) {
+
   if (typeof node === 'string') {
-    return node === 'x' ? x : Number(node);
+    return node === 'x'
+      ? x
+      : Number(node);
   }
 
-  const left = evaluate(node.left, x);
-  const right = evaluate(node.right, x);
+  // unary operators
+  if (node.child) {
+
+    const v = evaluate(node.child, x);
+
+    switch (node.op) {
+      case 'sin':
+        return Math.sin(v);
+    }
+  }
+
+  // binary operators
+  const left =
+    evaluate(node.left, x);
+
+  const right =
+    evaluate(node.right, x);
 
   switch (node.op) {
     case '+': return left + right;
@@ -76,11 +111,20 @@ function evaluate(node, x) {
 }
 
 function treeSize(node) {
+
   if (typeof node === 'string') {
     return 1;
   }
 
-  return 1 + treeSize(node.left) + treeSize(node.right);
+  if (node.child) {
+    return 1 + treeSize(node.child);
+  }
+
+  return (
+    1 +
+    treeSize(node.left) +
+    treeSize(node.right)
+  );
 }
 
 function generateFormulaSamples() {
@@ -170,13 +214,33 @@ function tournamentSelection(population, size = 5) {
 }
 
 function crossover(a, b) {
-  if (typeof a === 'string' || typeof b === 'string') {
-    return Math.random() < 0.5 ? clone(a) : clone(b);
+
+  if (
+    typeof a === 'string' ||
+    typeof b === 'string'
+  ) {
+    return Math.random() < 0.5
+      ? clone(a)
+      : clone(b);
   }
 
+  // unary
+  if (a.child || b.child) {
+
+    const source =
+      Math.random() < 0.5 ? a : b;
+
+    return clone(source);
+  }
+
+  // binary
   return {
-    op: Math.random() < 0.5 ? a.op : b.op,
+    op: Math.random() < 0.5
+      ? a.op
+      : b.op,
+
     left: crossover(a.left, b.left),
+
     right: crossover(a.right, b.right)
   };
 }
@@ -186,33 +250,74 @@ function clone(obj) {
 }
 
 function mutate(node, depth = 0) {
+
   if (typeof node === 'string') {
     return Math.random() < mutationRate
       ? randomTerminal()
       : node;
   }
 
-  // subtree replacement (important operator)
-  if (Math.random() < mutationRate && depth < treeDepth) {
+  if (
+    Math.random() < mutationRate &&
+    depth < treeDepth
+  ) {
     return randomTree(depth);
   }
 
   const child = clone(node);
 
-  // operator mutation
   if (Math.random() < mutationRate) {
-    child.op = OPERATORS[randomInt(OPERATORS.length)];
+
+    const op =
+      OPERATORS[randomInt(OPERATORS.length)];
+
+    child.op = op.symbol;
+
+    if (op.arity === 1) {
+
+      delete child.left;
+      delete child.right;
+
+      child.child =
+        child.child ||
+        randomTree(depth + 1);
+
+    } else {
+
+      delete child.child;
+
+      child.left =
+        child.left ||
+        randomTree(depth + 1);
+
+      child.right =
+        child.right ||
+        randomTree(depth + 1);
+    }
   }
 
-  child.left = mutate(child.left, depth + 1);
-  child.right = mutate(child.right, depth + 1);
+  if (child.child) {
+    child.child =
+      mutate(child.child, depth + 1);
+  } else {
+    child.left =
+      mutate(child.left, depth + 1);
+
+    child.right =
+      mutate(child.right, depth + 1);
+  }
 
   return child;
 }
 
 function treeToString(node) {
+
   if (typeof node === 'string') {
     return node;
+  }
+
+  if (node.child) {
+    return `${node.op}(${treeToString(node.child)})`;
   }
 
   return `(${treeToString(node.left)} ${node.op} ${treeToString(node.right)})`;
