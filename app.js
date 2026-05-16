@@ -62,13 +62,14 @@ const Home = {
         right: '1'
       },
       bestFitness: 0,
-      db: null
+      db: null,
+      expressionText: ''
     };
   },
 
   computed: {
     expression() {
-      return `${this.best.left} ${this.best.op} ${this.best.right}`;
+      return this.expressionText;
     }
   },
 
@@ -130,7 +131,7 @@ const Home = {
           this.history.unshift({
             generation: this.generation,
             fitness: this.bestFitness,
-            expression: `${this.best.left} ${this.best.op} ${this.best.right}`
+            expression: msg.expression
           });
 
           if (this.history.length > 20) {
