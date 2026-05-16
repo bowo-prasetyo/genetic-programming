@@ -3,7 +3,19 @@ const OP_ARITY = {
   '-': 2,
   '*': 2,
   '/': 2,
-  'sin': 1
+  'pow': 2,
+  'sin': 1,
+  'cos'': 1,
+  'tan': 1,
+  'asin': 1,
+  'acos': 1,
+  'atan': 1,
+  'log': 1,
+  'log2': 1,
+  'log10': 1,
+  'exp': 1,
+  'sqrt': 1,
+  'cbrt': 1
 };
 
 let targetFormula = "x*x + 2";
@@ -94,8 +106,18 @@ function evaluate(node, x) {
     const v = evaluate(node.child, x);
 
     switch (node.op) {
-      case 'sin':
-        return Math.sin(v);
+      case 'sin': return Math.sin(v);
+      case 'cos': return Math.cos(v);
+      case 'tan': return Math.tan(v);
+      case 'asin': return Math.asin(v);
+      case 'acos': return Math.acos(v);
+      case 'atan': return Math.atan(v);
+      case 'log': return Math.log(v);
+      case 'log2': return Math.log2(v);
+      case 'log10': return Math.log10(v);
+      case 'exp': return Math.exp(v);
+      case 'sqrt': return Math.sqrt(v);
+      case 'cbrt': return Math.cbrt(v);
     }
   }
 
@@ -111,6 +133,7 @@ function evaluate(node, x) {
     case '-': return left - right;
     case '*': return left * right;
     case '/': return left / right;
+    case 'pow': return Math.pow(left, right);
   }
 
   return 0;
@@ -365,7 +388,11 @@ function treeToString(node) {
   if (node.child) {
     return `${node.op}(${treeToString(node.child)})`;
   }
-
+  
+  if (node.op === 'pow') {
+    return `pow(${treeToString(node.left)}, ${treeToString(node.right)})`;
+  }
+  
   return `(${treeToString(node.left)} ${node.op} ${treeToString(node.right)})`;
 }
 
