@@ -127,6 +127,7 @@ const Home = {
 
           this.best = msg.best;
           this.bestFitness = msg.fitness;
+          this.expressionText = msg.expression;
 
           this.history.unshift({
             generation: this.generation,
