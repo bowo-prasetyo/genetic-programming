@@ -351,7 +351,10 @@ onmessage = (e) => {
     tournamentSize = msg.config.tournamentSize;
     treeDepth = msg.config.treeDepth;
     dataMode = msg.config.dataMode;
-    dataset = msg.config.dataset || [];
+    dataset = (msg.config.dataset || []).map(p => ({
+        x: Number(p.x),
+        y: Number(p.y)
+      })) || [];
     running = true;
     loop();
   }
