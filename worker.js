@@ -65,13 +65,13 @@ function fitness(program) {
   let error = 0;
 
   for (let x = minX; x <= maxX; x++) {
-
-    if (Math.abs(x) < 1e-9) continue;
     
     const expected = safeEvalFormula(targetFormula, x);
 
     const actual = evaluate(program, x);
 
+    if (!isFinite(expected) || !isFinite(actual)) continue;
+    
     error += Math.abs(expected - actual);
   }
 
