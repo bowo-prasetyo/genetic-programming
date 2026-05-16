@@ -239,8 +239,12 @@ function evolve() {
 function loop() {
   if (!running) return;
 
-  evolve();
+  if (generation >= maxGenerations) {
+    running = false;
+    return;
+  }
 
+  evolve();
   setTimeout(loop, 50);
 }
 
