@@ -3,6 +3,84 @@ const Home = {
   <div class="container">
 
     <h1>Browser Genetic Programming</h1>
+    
+    <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
+    
+      <h2>Target Function Input</h2>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Formula:</b></label>
+    
+        <input
+          v-model="targetFormula"
+          placeholder="x*x + 2"
+          style="width:300px; padding:8px; margin-left:10px;"
+        />
+      </div>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>X Range:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="minX"
+          style="width:80px; padding:8px; margin-left:10px;"
+        />
+    
+        <span style="margin:0 10px;">to</span>
+    
+        <input
+          type="number"
+          v-model.number="maxX"
+          style="width:80px; padding:8px;"
+        />
+      </div>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Population Size:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="populationSize"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Max Generations:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="maxGenerations"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
+    
+      <div style="margin-bottom:10px;">
+        <label><b>Operators:</b></label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="+"> +
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="-"> -
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="*"> *
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="/"> /
+        </label>
+      </div>
+    
+      <div class="code" style="margin-top:15px;">
+        Current Target: y = {{ targetFormula }}
+      </div>
+
+    </div>
 
     <button @click="start">Start Evolution</button>
     <button @click="stop">Stop</button>
@@ -63,7 +141,13 @@ const Home = {
       },
       bestFitness: 0,
       db: null,
-      expressionText: ''
+      expressionText: '',
+      targetFormula: 'x*x + 2',
+      minX: -5,
+      maxX: 5,
+      populationSize: 100,
+      maxGenerations: 1000,      
+      enabledOperators: ['+', '-', '*']
     };
   },
 
@@ -144,7 +228,17 @@ const Home = {
         }
       };
 
-      this.worker.postMessage({ type: 'start' });
+      this.worker.postMessage({
+        type: 'start',
+        config: {
+          targetFormula: this.targetFormula,
+          minX: this.minX,
+          maxX: this.maxX,
+          populationSize: this.populationSize,
+          maxGenerations: this.maxGenerations,
+          operators: this.enabledOperators
+        }
+      });
     },
 
     stop() {
