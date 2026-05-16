@@ -65,8 +65,17 @@ function randomInt(max) {
 }
 
 function randomTerminal() {
-  const terminals = ['x', '1', '2', '3', '4', '5'];
-  return terminals[randomInt(terminals.length)];
+
+  // 50% variable
+  if (Math.random() < 0.5) {
+    return 'x';
+  }
+
+  // ERC: random constant
+  const value =
+    (Math.random() * 20 - 10);
+
+  return value.toFixed(3);
 }
 
 function randomTree(depth = 0) {
@@ -325,11 +334,32 @@ function mutate(node, depth = 0) {
   }
   
   if (typeof node === 'string') {
-    return Math.random() < mutationRate
-      ? randomTerminal()
-      : node;
+  
+    // mutate terminal
+    if (Math.random() < mutationRate) {
+  
+      // keep x sometimes
+      if (node === 'x' && Math.random() < 0.5) {
+        return 'x';
+      }
+  
+      // numeric perturbation
+      const n = Number(node);
+  
+      if (!isNaN(n)) {
+  
+        const delta =
+          (Math.random() * 2 - 1);
+  
+        return (n + delta).toFixed(3);
+      }
+  
+      return randomTerminal();
+    }
+  
+    return node;
   }
-
+  
   if (
     Math.random() < mutationRate &&
     depth < treeDepth
