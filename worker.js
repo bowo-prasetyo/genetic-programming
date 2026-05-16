@@ -319,7 +319,11 @@ function normalizeNode(node, depth = 0) {
 }
 
 function mutate(node, depth = 0) {
-
+  
+  if (node == null) {
+    return randomTree(depth);
+  }
+  
   if (typeof node === 'string') {
     return Math.random() < mutationRate
       ? randomTerminal()
