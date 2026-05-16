@@ -1,0 +1,50 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #eee;
+}
+
+nav {
+  background: #222;
+  padding: 12px;
+}
+
+nav a {
+  color: #fff;
+  margin-right: 15px;
+  text-decoration: none;
+}
+
+.container {
+  padding: 20px;
+}
+
+button {
+  padding: 10px 14px;
+  margin-right: 10px;
+}
+
+canvas {
+  border: 1px solid #555;
+  background: #fff;
+  margin-top: 20px;
+}
+
+svg {
+  background: #fff;
+  margin-top: 20px;
+}
+
+.stats {
+  margin-top: 15px;
+  line-height: 1.8;
+}
+
+.code {
+  background: #222;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: monospace;
+}
