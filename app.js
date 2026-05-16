@@ -31,7 +31,6 @@ const Home = {
       </div>
 
       <div v-if="dataMode === 'formula'">
-  
         <div style="margin-bottom:10px;">
           <label><b>Formula:</b></label>
       
@@ -63,11 +62,9 @@ const Home = {
         <div class="code" style="margin-top:15px;">
           Current Target: y = {{ targetFormula }}
         </div>
-  
       </div>
 
       <div v-if="dataMode === 'dataset'">
-      
         <div style="margin-bottom:10px;">
           <label><b>Upload CSV:</b></label>
       
@@ -98,8 +95,12 @@ const Home = {
           | Points:
           {{ uploadedData.length }}
         </div>
-      
       </div>
+    </div>
+    
+    <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
+    
+      <h2>GP Parameters Settings</h2>
         <div style="margin-bottom:10px;">
           <label><b>Population Size:</b></label>
       
@@ -149,12 +150,6 @@ const Home = {
           <input type="checkbox" v-model="enabledOperators" value="/"> /
         </label>
       </div>
-
-    </div>
-    
-    <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
-    
-      <h2>GP Rules Settings</h2>
     
       <div style="margin-bottom:10px;">
         <label><b>Mutation Rate:</b></label>
