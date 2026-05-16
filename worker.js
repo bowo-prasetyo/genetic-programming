@@ -91,7 +91,7 @@ function fitness(program) {
 
   const avgError = error / count;
 
-  const complexityPenalty = treeSize(program) * 0.05;
+  const complexityPenalty = treeSize(program) * 0.0; //0.05-->0.0
 
   const total = avgError + complexityPenalty;
 
