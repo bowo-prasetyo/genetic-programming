@@ -484,7 +484,7 @@ function loop() {
 function buildOperators(ops) {
   const operators = [];
   for (let i = 0; i < ops.length; i++) {
-    push({ symbol: ops[i], arity: OP_ARITY[ops[i]] });
+    operators.push({ symbol: ops[i], arity: OP_ARITY[ops[i]] });
   }
   if (!operators || operators.length === 0) {
     return [
