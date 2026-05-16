@@ -10,7 +10,7 @@ function randomTerminal() {
 }
 
 function randomTree(depth = 0) {
-  if (depth > 2 || Math.random() < 0.3) {
+  if (depth > 4 || Math.random() < 0.2) {
     return randomTerminal();
   }
 
@@ -38,17 +38,69 @@ function evaluate(node, x) {
   return 0;
 }
 
+function treeSize(node) {
+  if (typeof node === 'string') {
+    return 1;
+  }
+
+  return 1 + treeSize(node.left) + treeSize(node.right);
+}
+
 function fitness(program) {
   let error = 0;
 
   for (let x = -5; x <= 5; x++) {
-    const expected = x * x + 2;
+    const expected = (x * x) * 2 + 2;
+
     const actual = evaluate(program, x);
 
     error += Math.abs(expected - actual);
   }
 
-  return error;
+  const complexityPenalty = treeSize(program) * 0.05;
+
+  return error + complexityPenalty;
+}
+
+function tournamentSelection(population, size = 5) {
+  let best = null;
+
+  for (let i = 0; i < size; i++) {
+    const candidate = population[randomInt(population.length)];
+
+    if (
+      !best ||
+      fitness(candidate) < fitness(best)
+    ) {
+      best = candidate;
+    }
+  }
+
+  return clone(best);
+}
+
+function crossover(a, b, depth = 0) {
+
+  if (
+    typeof a === 'string' ||
+    typeof b === 'string'
+  ) {
+    return Math.random() < 0.5
+      ? clone(a)
+      : clone(b);
+  }
+
+  if (Math.random() < 0.3) {
+    return clone(b);
+  }
+
+  return {
+    op: Math.random() < 0.5 ? a.op : b.op,
+
+    left: crossover(a.left, b.left, depth + 1),
+
+    right: crossover(a.right, b.right, depth + 1)
+  };
 }
 
 function clone(obj) {
@@ -102,9 +154,12 @@ function initPopulation(size = 100) {
 }
 
 function evolve() {
+
   generation++;
 
-  population.sort((a, b) => fitness(a) - fitness(b));
+  population.sort(
+    (a, b) => fitness(a) - fitness(b)
+  );
 
   const best = population[0];
   const bestFitness = fitness(best);
@@ -117,7 +172,8 @@ function evolve() {
     expression: treeToString(best)
   });
 
-  if (bestFitness <= 0 || generation >= 1000) {
+  if (bestFitness <= 0.5 || generation >= 2000) {
+
     running = false;
 
     postMessage({
@@ -131,13 +187,31 @@ function evolve() {
     return;
   }
 
-  const survivors = population.slice(0, 10);
+  const next = [];
 
-  const next = [...survivors];
+  // Elitism
+  next.push(clone(best));
 
-  while (next.length < population.length) {
-    const parent = survivors[randomInt(survivors.length)];
-    next.push(mutate(parent));
+  // Breed new population
+  while (next.length < population.length - 20) {
+
+    const parentA =
+      tournamentSelection(population);
+
+    const parentB =
+      tournamentSelection(population);
+
+    let child =
+      crossover(parentA, parentB);
+
+    child = mutate(child);
+
+    next.push(child);
+  }
+
+  // Random immigrants
+  for (let i = 0; i < 20; i++) {
+    next.push(randomTree());
   }
 
   population = next;
