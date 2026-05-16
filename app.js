@@ -151,7 +151,55 @@ const Home = {
         </label>
     
         <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="pow"> pow
+        </label>
+    
+        <label style="margin-left:10px;">
           <input type="checkbox" v-model="enabledOperators" value="sin"> sin
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="cos"> cos
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="tan"> tan
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="asin"> asin
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="acos"> acos
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="atan"> atan
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="log"> log
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="log2"> log2
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="log10"> log10
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="exp"> exp
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="sqrt"> sqrt
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="cbrt"> cbrt
         </label>
       </div>
     
