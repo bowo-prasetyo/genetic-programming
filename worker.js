@@ -5,7 +5,7 @@ const OP_ARITY = {
   '/': 2,
   'pow': 2,
   'sin': 1,
-  'cos'': 1,
+  'cos': 1,
   'tan': 1,
   'asin': 1,
   'acos': 1,
