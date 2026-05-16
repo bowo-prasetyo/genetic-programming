@@ -149,6 +149,10 @@ const Home = {
         <label style="margin-left:10px;">
           <input type="checkbox" v-model="enabledOperators" value="/"> /
         </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="sin"> sin
+        </label>
       </div>
     
       <div style="margin-bottom:10px;">
