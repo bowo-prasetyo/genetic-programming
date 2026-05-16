@@ -236,7 +236,7 @@ const Home = {
           maxX: this.maxX,
           populationSize: this.populationSize,
           maxGenerations: this.maxGenerations,
-          operators: this.enabledOperators
+          operators: [...this.enabledOperators]
         }
       });
     },
