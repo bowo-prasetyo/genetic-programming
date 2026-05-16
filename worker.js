@@ -1,5 +1,26 @@
 const OPERATORS = ['+', '-', '*'];
 
+function randomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
+function randomGene() {
+  const genes = ['x', '1', '2', '3', '4', '5'];
+  return genes[randomInt(genes.length)];
+}
+
+function randomProgram() {
+  return {
+    left: randomGene(),
+    op: OPERATORS[randomInt(OPERATORS.length)],
+    right: randomGene()
+  };
+}
+
+function evaluate(program, x) {
+  const left = program.left === 'x' ? x : Number(program.left);
+  const right = program.right === 'x' ? x : Number(program.right);
+
   switch (program.op) {
     case '+': return left + right;
     case '-': return left - right;
