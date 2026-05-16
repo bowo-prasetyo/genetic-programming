@@ -209,14 +209,12 @@ const Home = {
         const msg = e.data;
 
         if (msg.type === 'update') {
-          this.generation++;
-
           this.best = msg.best;
           this.bestFitness = msg.fitness;
           this.expressionText = msg.expression;
 
           this.history.unshift({
-            generation: this.generation,
+            generation: msg.generation,
             fitness: this.bestFitness,
             expression: msg.expression
           });
