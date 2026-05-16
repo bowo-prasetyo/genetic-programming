@@ -1,5 +1,6 @@
 let targetFormula = "x*x + 2";
 let OPERATORS = ['+', '-', '*'];
+let minError = 0.1;
 let maxGenerations = 1000;
 let populationSize = 100;
 let minX = -5;
@@ -219,7 +220,7 @@ function evolve() {
   });
 
   if (
-    rawError <= 2 ||
+    rawError <= minError ||
     generation >= maxGenerations
   ) {
   
@@ -285,6 +286,7 @@ onmessage = (e) => {
   if (msg.type === 'start') {
     initPopulation(populationSize);
     targetFormula = msg.config.targetFormula;
+    minError = msg.config.minError;
     maxGenerations = msg.config.maxGenerations;
     populationSize = msg.config.populationSize;
     minX = msg.config.minX;
