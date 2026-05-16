@@ -125,27 +125,15 @@ function tournamentSelection(population, size = 5) {
   return clone(best);
 }
 
-function crossover(a, b, depth = 0) {
-
-  if (
-    typeof a === 'string' ||
-    typeof b === 'string'
-  ) {
-    return Math.random() < 0.5
-      ? clone(a)
-      : clone(b);
-  }
-
-  if (Math.random() < 1 - crossoverRate) {
-    return clone(b);
+function crossover(a, b) {
+  if (typeof a === 'string' || typeof b === 'string') {
+    return Math.random() < 0.5 ? clone(a) : clone(b);
   }
 
   return {
     op: Math.random() < 0.5 ? a.op : b.op,
-
-    left: crossover(a.left, b.left, depth + 1),
-
-    right: crossover(a.right, b.right, depth + 1)
+    left: crossover(a.left, b.left),
+    right: crossover(a.right, b.right)
   };
 }
 
@@ -155,25 +143,25 @@ function clone(obj) {
 
 function mutate(node, depth = 0) {
   if (typeof node === 'string') {
-    if (Math.random() < mutationRate) {
-      return randomTerminal();
-    }
+    return Math.random() < mutationRate
+      ? randomTerminal()
+      : node;
+  }
 
-    return node;
+  // subtree replacement (important operator)
+  if (Math.random() < mutationRate && depth < treeDepth) {
+    return randomTree(depth);
   }
 
   const child = clone(node);
 
+  // operator mutation
   if (Math.random() < mutationRate) {
     child.op = OPERATORS[randomInt(OPERATORS.length)];
   }
 
   child.left = mutate(child.left, depth + 1);
   child.right = mutate(child.right, depth + 1);
-
-  if (Math.random() < mutationRate && depth < 2) {
-    return randomTree(depth);
-  }
 
   return child;
 }
@@ -267,8 +255,7 @@ function evolve() {
         ? crossover(parentA, parentB)
         : clone(parentA);
 
-    if (Math.random() < mutationRate)
-      child = mutate(child);
+    child = mutate(child);
 
     next.push(child);
   }
@@ -277,7 +264,11 @@ function evolve() {
   for (let i = 0; i < 20; i++) {
     next.push(randomTree());
   }
-
+    
+  while (next.length < populationSize) {
+    next.push(randomTree());
+  }
+  
   population = next;
 }
 
