@@ -1,4 +1,4 @@
-const OPERATORS = ['+', '-', '*'];
+let OPERATORS = ['+', '-', '*'];
 let maxGenerations = 1000;
 let populationSize = 100;
 let minX = -5;
@@ -260,6 +260,7 @@ onmessage = (e) => {
     populationSize = msg.config.populationSize;
     minX = msg.config.minX;
     maxX = msg.config.maxX;
+    OPERATORS = msg.config.operators;
     running = true;
     loop();
   }
