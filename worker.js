@@ -260,10 +260,6 @@ function evolve() {
   }
 
   // Random immigrants
-  while (next.length < populationSize - 20) {
-    next.push(randomTree());
-  }
-    
   while (next.length < populationSize) {
     next.push(randomTree());
   }
