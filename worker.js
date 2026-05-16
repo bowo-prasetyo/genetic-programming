@@ -9,7 +9,8 @@ function safeEvalFormula(formula, x) {
   try {
     return Function('x', `return ${formula};`)(x);
   } catch (e) {
-    return 0;
+    console.error("Invalid formula:", formula);
+    return x;
   }
 }
 
@@ -271,6 +272,9 @@ onmessage = (e) => {
     minX = msg.config.minX;
     maxX = msg.config.maxX;
     OPERATORS = msg.config.operators;
+    if (!OPERATORS || OPERATORS.length === 0) {
+      OPERATORS = ['+', '-', '*'];
+    }
     running = true;
     loop();
   }
