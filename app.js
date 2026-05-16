@@ -376,7 +376,7 @@ const Home = {
           tournamentSize: this.tournamentSize,
           treeDepth: this.treeDepth,
           dataMode: this.dataMode,
-          dataset: this.uploadedData
+          dataset: JSON.parse(JSON.stringify(this.uploadedData))
         }
       });
     },
