@@ -241,7 +241,7 @@ function evolve() {
       generation,
       expression: treeToString(best)
     });
-
+    
     return;
   }
 
@@ -283,7 +283,8 @@ function evolve() {
     next.push(clone(population[randomInt(population.length)]));
   } 
   
-  population = next;
+  population = next;      
+  fitnessCache.clear();    
 }
 
 function loop() {
