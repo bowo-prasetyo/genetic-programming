@@ -113,6 +113,7 @@ const Home = {
       >
         Generation {{ item.generation }}
         | Fitness: {{ item.fitness }}
+        | Error: {{ item.rawError }}
         | {{ item.expression }}
       </div>
 
