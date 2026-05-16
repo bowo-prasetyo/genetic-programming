@@ -63,24 +63,40 @@ function treeSize(node) {
 function fitness(program) {
 
   let error = 0;
+  let count = 0;
 
   for (let x = minX; x <= maxX; x++) {
-    
-    const expected = safeEvalFormula(targetFormula, x);
 
+    const expected = safeEvalFormula(targetFormula, x);
     const actual = evaluate(program, x);
 
-    if (!isFinite(expected) || !isFinite(actual)) continue;
-    
-    error += Math.abs(expected - actual);
+    if (!Number.isFinite(expected) || !Number.isFinite(actual)) continue;
+
+    const diff = Math.abs(expected - actual);
+
+    if (!Number.isFinite(diff)) continue;
+
+    error += diff;
+    count++;
   }
 
-  const complexityPenalty =
-    treeSize(program) * 0.05;
+  // ⚠️ prevent divide-by-zero collapse
+  if (count === 0) {
+    return {
+      rawError: Infinity,
+      totalFitness: Infinity
+    };
+  }
+
+  const avgError = error / count;
+
+  const complexityPenalty = treeSize(program) * 0.05;
+
+  const total = avgError + complexityPenalty;
 
   return {
-    rawError: error,
-    totalFitness: error + complexityPenalty
+    rawError: avgError,
+    totalFitness: Number.isFinite(total) ? total : Infinity
   };
 }
 
