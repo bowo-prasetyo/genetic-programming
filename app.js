@@ -439,62 +439,251 @@ const Home = {
       this.worker.postMessage({ type: 'stop' });
     },
 
-    evaluate(x) {
-      const left = this.best.left === 'x'
-        ? x
-        : Number(this.best.left);
-
-      const right = this.best.right === 'x'
-        ? x
-        : Number(this.best.right);
-
-      switch (this.best.op) {
-        case '+': return left + right;
-        case '-': return left - right;
-        case '*': return left * right;
+    evaluateTree(node, x) {
+    
+      if (node == null) {
+        return 0;
       }
-
+    
+      // terminal
+      if (typeof node === 'string') {
+    
+        if (node === 'x') {
+          return x;
+        }
+    
+        return Number(node);
+      }
+    
+      // unary
+      if (node.child) {
+    
+        const v =
+          this.evaluateTree(node.child, x);
+    
+        switch (node.op) {
+    
+          case 'sin':
+            return Math.sin(v);
+    
+          case 'cos':
+            return Math.cos(v);
+    
+          default:
+            return 0;
+        }
+      }
+    
+      // binary
+      const left =
+        this.evaluateTree(node.left, x);
+    
+      const right =
+        this.evaluateTree(node.right, x);
+    
+      switch (node.op) {
+    
+        case '+':
+          return left + right;
+    
+        case '-':
+          return left - right;
+    
+        case '*':
+          return left * right;
+    
+        case '/':
+          return left / right;
+    
+        case 'pow':
+          return Math.pow(left, right);
+      }
+    
       return 0;
     },
 
     drawCanvas() {
+    
       const canvas = this.$refs.canvas;
-
+    
       if (!canvas) return;
-
+    
       const ctx = canvas.getContext('2d');
-
+    
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-
-      for (let x = 0; x < canvas.width; x++) {
-        const logicalX = (x - 300) / 30;
-        const y = this.evaluate(logicalX);
-
-        const screenY = 150 - y * 10;
-
-        if (x === 0) {
-          ctx.moveTo(x, screenY);
-        } else {
-          ctx.lineTo(x, screenY);
+    
+      // no data
+      if (
+        this.targetMode === 'dataset' &&
+        this.dataset.length === 0
+      ) {
+        return;
+      }
+    
+      // determine x-range
+      let minX = this.minX;
+      let maxX = this.maxX;
+    
+      if (this.targetMode === 'dataset') {
+    
+        minX = Math.min(
+          ...this.dataset.map(p => p.x)
+        );
+    
+        maxX = Math.max(
+          ...this.dataset.map(p => p.x)
+        );
+      }
+    
+      // determine y-range
+      const ys = [];
+    
+      // sample GP line
+      for (let px = 0; px < canvas.width; px++) {
+    
+        const x =
+          minX +
+          (px / canvas.width) *
+          (maxX - minX);
+    
+        const y = this.evaluateTree(this.best, x);
+    
+        if (Number.isFinite(y)) {
+          ys.push(y);
         }
       }
-
+    
+      // include dataset y
+      if (this.targetMode === 'dataset') {
+    
+        for (const p of this.dataset) {
+    
+          if (Number.isFinite(p.y)) {
+            ys.push(p.y);
+          }
+        }
+      }
+    
+      if (ys.length === 0) return;
+    
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+    
+      const scaleX =
+        canvas.width / (maxX - minX || 1);
+    
+      const scaleY =
+        canvas.height / (maxY - minY || 1);
+    
+      // =========================
+      // draw GP curve
+      // =========================
+    
+      ctx.beginPath();
+    
+      let started = false;
+    
+      for (let px = 0; px < canvas.width; px++) {
+    
+        const x =
+          minX +
+          (px / canvas.width) *
+          (maxX - minX);
+    
+        const y =
+          this.evaluateTree(this.best, x);
+    
+        if (!Number.isFinite(y)) {
+          started = false;
+          continue;
+        }
+    
+        const screenX =
+          (x - minX) * scaleX;
+    
+        const screenY =
+          canvas.height -
+          ((y - minY) * scaleY);
+    
+        if (!started) {
+          ctx.moveTo(screenX, screenY);
+          started = true;
+        } else {
+          ctx.lineTo(screenX, screenY);
+        }
+      }
+    
       ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
       ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(0, 150);
-      ctx.lineTo(600, 150);
-      ctx.strokeStyle = 'black';
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(300, 0);
-      ctx.lineTo(300, 300);
-      ctx.strokeStyle = 'black';
-      ctx.stroke();
+    
+      // =========================
+      // draw dataset points
+      // =========================
+    
+      if (this.targetMode === 'dataset') {
+    
+        for (const p of this.dataset) {
+    
+          if (
+            !Number.isFinite(p.x) ||
+            !Number.isFinite(p.y)
+          ) {
+            continue;
+          }
+    
+          const screenX =
+            (p.x - minX) * scaleX;
+    
+          const screenY =
+            canvas.height -
+            ((p.y - minY) * scaleY);
+    
+          ctx.beginPath();
+    
+          ctx.arc(
+            screenX,
+            screenY,
+            4,
+            0,
+            Math.PI * 2
+          );
+    
+          ctx.fillStyle = 'blue';
+          ctx.fill();
+        }
+      }
+    
+      // =========================
+      // axes
+      // =========================
+    
+      // x-axis
+      if (minY < 0 && maxY > 0) {
+    
+        const y0 =
+          canvas.height -
+          ((0 - minY) * scaleY);
+    
+        ctx.beginPath();
+        ctx.moveTo(0, y0);
+        ctx.lineTo(canvas.width, y0);
+        ctx.strokeStyle = '#888';
+        ctx.stroke();
+      }
+    
+      // y-axis
+      if (minX < 0 && maxX > 0) {
+    
+        const x0 =
+          (0 - minX) * scaleX;
+    
+        ctx.beginPath();
+        ctx.moveTo(x0, 0);
+        ctx.lineTo(x0, canvas.height);
+        ctx.strokeStyle = '#888';
+        ctx.stroke();
+      }
     },
 
     handleFileUpload(event) {
