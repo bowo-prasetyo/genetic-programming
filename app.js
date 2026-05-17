@@ -146,6 +146,31 @@ const Home = {
     </svg>
     </div>
 
+    <div class="stats">
+      <div><b>Best Fitness:</b> {{ bestFitness }}</div>
+      <div><b>Best Program:</b></div>
+
+      <div class="code">
+        {{ expression }}
+      </div>
+
+      <h3>Evolution History</h3>
+
+      <div
+        v-for="(item, index) in history"
+        :key="index"
+        class="code"
+        style="margin-top:8px"
+      >
+        Generation {{ item.generation }}
+        | Fitness: {{ item.fitness }}
+        | R<sup>2</sup>: {{ item.r2 }}
+        | Error: {{ item.error }}
+        | {{ item.expression }}
+      </div>
+
+    </div>
+
     <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
     
       <h2>GP Parameters Settings</h2>
@@ -305,31 +330,7 @@ const Home = {
 
     <button @click="start">Start Evolution</button>
     <button @click="stop">Stop</button>
-
-    <div class="stats">
-      <div><b>Best Fitness:</b> {{ bestFitness }}</div>
-      <div><b>Best Program:</b></div>
-
-      <div class="code">
-        {{ expression }}
-      </div>
-
-      <h3>Evolution History</h3>
-
-      <div
-        v-for="(item, index) in history"
-        :key="index"
-        class="code"
-        style="margin-top:8px"
-      >
-        Generation {{ item.generation }}
-        | Fitness: {{ item.fitness }}
-        | R<sup>2</sup>: {{ item.r2 }}
-        | Error: {{ item.error }}
-        | {{ item.expression }}
-      </div>
-
-    </div>
+    
   </div>
   `,
 
