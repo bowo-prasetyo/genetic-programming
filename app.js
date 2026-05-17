@@ -467,7 +467,7 @@ const Home = {
             return Math.sin(v);
     
           case 'cos':
-            return Math.cos(v);':
+            return Math.cos(v);
     
           case 'tan':
             return Math.tan(v);
