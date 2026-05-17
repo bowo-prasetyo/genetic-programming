@@ -519,6 +519,7 @@ function evolve() {
     best,
     fitness: bestFitness,
     rawError: rawError,
+    r2: result.r2,
     generation,
     expression: treeToString(best)
   });
