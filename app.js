@@ -294,6 +294,7 @@ const Home = {
       >
         Generation {{ item.generation }}
         | Fitness: {{ item.fitness }}
+        | R<sup>2</sup>: {{ item.r2 }}
         | Error: {{ item.error }}
         | {{ item.expression }}
       </div>
@@ -433,6 +434,7 @@ const Home = {
             generation: msg.generation,
             fitness: this.bestFitness,
             error: msg.rawError,
+            r2: msg.r2,
             expression: msg.expression
           });
 
