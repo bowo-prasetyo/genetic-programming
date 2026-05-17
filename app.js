@@ -102,6 +102,50 @@ const Home = {
     <canvas ref="canvas" width="600" height="300"></canvas>
     </div>
 
+    <div>
+    <svg width="1200" height="600">
+    
+      <g v-if="best">
+        <template
+          v-for="(item, index) in renderTree(best, 600, 40, 300)"
+          :key="index"
+        >
+    
+          <!-- edges -->
+          <line
+            v-if="item.parent"
+            :x1="item.parent.x"
+            :y1="item.parent.y"
+            :x2="item.x"
+            :y2="item.y"
+            stroke="white"
+          />
+    
+          <!-- node -->
+          <circle
+            :cx="item.x"
+            :cy="item.y"
+            r="20"
+            :fill="item.color"
+          />
+    
+          <!-- label -->
+          <text
+            :x="item.x"
+            :y="item.y + 5"
+            text-anchor="middle"
+            fill="black"
+            font-size="12"
+          >
+            {{ item.label }}
+          </text>
+    
+        </template>
+      </g>
+    
+    </svg>
+    </div>
+
     <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
     
       <h2>GP Parameters Settings</h2>
@@ -286,51 +330,6 @@ const Home = {
       </div>
 
     </div>
-
-    <div>
-    <svg width="1200" height="600">
-    
-      <g v-if="best">
-        <template
-          v-for="(item, index) in renderTree(best, 600, 40, 300)"
-          :key="index"
-        >
-    
-          <!-- edges -->
-          <line
-            v-if="item.parent"
-            :x1="item.parent.x"
-            :y1="item.parent.y"
-            :x2="item.x"
-            :y2="item.y"
-            stroke="white"
-          />
-    
-          <!-- node -->
-          <circle
-            :cx="item.x"
-            :cy="item.y"
-            r="20"
-            :fill="item.color"
-          />
-    
-          <!-- label -->
-          <text
-            :x="item.x"
-            :y="item.y + 5"
-            text-anchor="middle"
-            fill="black"
-            font-size="12"
-          >
-            {{ item.label }}
-          </text>
-    
-        </template>
-      </g>
-    
-    </svg>
-    </div>
-
   </div>
   `,
 
