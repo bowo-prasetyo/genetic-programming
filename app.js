@@ -335,11 +335,44 @@ const Home = {
   },
 
   computed: {
+  
     expression() {
       return this.expressionText;
+    },
+  
+    sampleData() {
+  
+      // uploaded dataset mode
+      if (this.dataMode === 'dataset') {
+        return this.uploadedData;
+      }
+  
+      // formula mode
+      const data = [];
+  
+      for (let x = this.minX; x <= this.maxX; x += 0.5) {
+  
+        let y = 0;
+  
+        try {
+          y = Function(
+            'x',
+            `return ${this.targetFormula};`
+          )(x);
+  
+        } catch (e) {
+          continue;
+        }
+  
+        if (Number.isFinite(y)) {
+          data.push({ x, y });
+        }
+      }
+  
+      return data;
     }
   },
-
+    
   mounted() {
     this.initDB();
     this.drawCanvas();
@@ -555,9 +588,14 @@ const Home = {
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
     
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-    
+      let minY = Math.min(...ys);
+      let maxY = Math.max(...ys);
+      
+      if (minY === maxY) {
+        minY -= 1;
+        maxY += 1;
+      }  
+      
       const padding = 20;
     
       function toScreenX(x) {
