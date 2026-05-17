@@ -355,7 +355,7 @@ const Home = {
       minX: -5,
       maxX: 5,
       populationSize: 100,
-      minError: 0.1,      
+      minError: 0.01,      
       maxGenerations: 1000,      
       enabledOperators: ['+', '-', '*'],
       mutationRate: 0.1,
