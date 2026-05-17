@@ -235,13 +235,11 @@ This dramatically improves symbolic regression capability.
 # Example Discoveries
 
 Target:
-
 ```js
 x*x + 2/x
 ```
 
 Evolved result:
-
 ```txt
 (((4 / (2 * x)) + ((x * x) - 5)) + 5)
 ```
@@ -249,13 +247,11 @@ Evolved result:
 ---
 
 Target:
-
 ```js
 Math.sin(x)
 ```
 
 Possible evolved approximation:
-
 ```txt
 (((5 / x) - x) / 4)
 ```
@@ -268,7 +264,8 @@ Possible evolved approximation:
 
 Evolved result:
 ```txt
-(((4 / (2 * x)) + ((x * x) - 5)) + 5)
+9.667 * (((8.220 * 9.254) * 6.426) * ((x + 5.258) + x))
+
 ```
 
 * [👩‍🏫 Student Scores - Simple 🗃️ Dataset](https://www.kaggle.com/datasets/samira1992/student-scores-simple-dataset)
