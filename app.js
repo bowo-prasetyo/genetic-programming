@@ -517,7 +517,7 @@ const Home = {
       );
     
       return result;
-    }
+    },
 
     saveBest() {
       if (!this.db) return;
