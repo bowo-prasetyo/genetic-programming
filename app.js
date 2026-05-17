@@ -501,9 +501,8 @@ const Home = {
     
       return 0;
     },
-
-    drawCanvas() {
     
+    drawCanvas() {
       const canvas = this.$refs.canvas;
     
       if (!canvas) return;
@@ -512,102 +511,61 @@ const Home = {
     
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-      // no data
-      if (
-        this.targetMode === 'dataset' &&
-        this.dataset.length === 0
-      ) {
-        return;
-      }
+      // =========================
+      // FIND DATA RANGE
+      // =========================
     
-      // determine x-range
-      let minX = this.minX;
-      let maxX = this.maxX;
+      let points = this.sampleData || [];
     
-      if (this.targetMode === 'dataset') {
+      if (!points.length) return;
     
-        minX = Math.min(
-          ...this.dataset.map(p => p.x)
-        );
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
     
-        maxX = Math.max(
-          ...this.dataset.map(p => p.x)
-        );
-      }
-    
-      // determine y-range
-      const ys = [];
-    
-      // sample GP line
-      for (let px = 0; px < canvas.width; px++) {
-    
-        const x =
-          minX +
-          (px / canvas.width) *
-          (maxX - minX);
-    
-        const y = this.evaluateTree(this.best, x);
-    
-        if (Number.isFinite(y)) {
-          ys.push(y);
-        }
-      }
-    
-      // include dataset y
-      if (this.targetMode === 'dataset') {
-    
-        for (const p of this.dataset) {
-    
-          if (Number.isFinite(p.y)) {
-            ys.push(p.y);
-          }
-        }
-      }
-    
-      if (ys.length === 0) return;
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
     
       const minY = Math.min(...ys);
       const maxY = Math.max(...ys);
     
-      const scaleX =
-        canvas.width / (maxX - minX || 1);
+      const padding = 20;
     
-      const scaleY =
-        canvas.height / (maxY - minY || 1);
+      function toScreenX(x) {
+        return padding +
+          ((x - minX) / (maxX - minX)) *
+          (canvas.width - padding * 2);
+      }
+    
+      function toScreenY(y) {
+        return canvas.height - padding -
+          ((y - minY) / (maxY - minY)) *
+          (canvas.height - padding * 2);
+      }
     
       // =========================
-      // draw GP curve
+      // DRAW GP CURVE FIRST
       // =========================
     
       ctx.beginPath();
     
-      let started = false;
+      let first = true;
     
       for (let px = 0; px < canvas.width; px++) {
     
-        const x =
-          minX +
-          (px / canvas.width) *
-          (maxX - minX);
+        const logicalX =
+          minX + (px / canvas.width) * (maxX - minX);
     
         const y =
-          this.evaluateTree(this.best, x);
+          this.evaluateTree(this.best, logicalX);
     
-        if (!Number.isFinite(y)) {
-          started = false;
-          continue;
-        }
+        if (!Number.isFinite(y)) continue;
     
-        const screenX =
-          (x - minX) * scaleX;
+        const screenX = toScreenX(logicalX);
+        const screenY = toScreenY(y);
     
-        const screenY =
-          canvas.height -
-          ((y - minY) * scaleY);
-    
-        if (!started) {
+        if (first) {
           ctx.moveTo(screenX, screenY);
-          started = true;
+          first = false;
         } else {
           ctx.lineTo(screenX, screenY);
         }
@@ -618,71 +576,49 @@ const Home = {
       ctx.stroke();
     
       // =========================
-      // draw dataset points
+      // DOWNSAMPLE DATA
       // =========================
     
-      if (this.targetMode === 'dataset') {
+      const maxPoints = 30;
     
-        for (const p of this.dataset) {
+      let sampled = points;
     
-          if (
-            !Number.isFinite(p.x) ||
-            !Number.isFinite(p.y)
-          ) {
-            continue;
-          }
+      if (points.length > maxPoints) {
     
-          const screenX =
-            (p.x - minX) * scaleX;
+        sampled = [];
     
-          const screenY =
-            canvas.height -
-            ((p.y - minY) * scaleY);
+        const step =
+          points.length / maxPoints;
     
-          ctx.beginPath();
-    
-          ctx.arc(
-            screenX,
-            screenY,
-            4,
-            0,
-            Math.PI * 2
+        for (let i = 0; i < maxPoints; i++) {
+          sampled.push(
+            points[Math.floor(i * step)]
           );
-    
-          ctx.fillStyle = 'blue';
-          ctx.fill();
         }
       }
     
       // =========================
-      // axes
+      // DRAW DATA POINTS LAST
       // =========================
     
-      // x-axis
-      if (minY < 0 && maxY > 0) {
+      ctx.fillStyle = 'cyan';
     
-        const y0 =
-          canvas.height -
-          ((0 - minY) * scaleY);
+      for (const p of sampled) {
     
-        ctx.beginPath();
-        ctx.moveTo(0, y0);
-        ctx.lineTo(canvas.width, y0);
-        ctx.strokeStyle = '#888';
-        ctx.stroke();
-      }
-    
-      // y-axis
-      if (minX < 0 && maxX > 0) {
-    
-        const x0 =
-          (0 - minX) * scaleX;
+        const sx = toScreenX(p.x);
+        const sy = toScreenY(p.y);
     
         ctx.beginPath();
-        ctx.moveTo(x0, 0);
-        ctx.lineTo(x0, canvas.height);
-        ctx.strokeStyle = '#888';
-        ctx.stroke();
+    
+        ctx.arc(
+          sx,
+          sy,
+          5, // bigger point radius
+          0,
+          Math.PI * 2
+        );
+    
+        ctx.fill();
       }
     },
 
