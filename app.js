@@ -561,7 +561,7 @@ const Home = {
             expression: msg.expression
           });
 
-          if (this.history.length > 20) {
+          if (this.history.length > 3) {
             this.history.pop();
           }
 
