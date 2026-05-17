@@ -262,6 +262,12 @@ Possible evolved approximation:
 
 ---
 
+# Example Datasets
+
+* [👩‍🏫 Student Scores - Simple 🗃️ Dataset](https://www.kaggle.com/datasets/samira1992/student-scores-simple-dataset)
+
+---
+
 # Running Locally
 
 Clone repository:
