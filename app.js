@@ -285,6 +285,7 @@ const Home = {
         <input
           type="number"
           v-model.number="mutationRate"
+          step="0.1"
           style="width:120px; padding:8px; margin-left:10px;"
         />
       </div>
@@ -295,6 +296,7 @@ const Home = {
         <input
           type="number"
           v-model.number="crossoverRate"
+          step="0.1"
           style="width:120px; padding:8px; margin-left:10px;"
         />
       </div>
@@ -305,6 +307,7 @@ const Home = {
         <input
           type="number"
           v-model.number="elitismRate"
+          step="0.01"
           style="width:120px; padding:8px; margin-left:10px;"
         />
       </div>
