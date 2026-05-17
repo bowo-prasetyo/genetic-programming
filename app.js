@@ -467,7 +467,37 @@ const Home = {
             return Math.sin(v);
     
           case 'cos':
-            return Math.cos(v);
+            return Math.cos(v);':
+    
+          case 'tan':
+            return Math.tan(v);
+    
+          case 'asin':
+            return Math.asin(v);
+    
+          case 'acos':
+            return Math.acos(v);
+    
+          case 'atan':
+            return Math.atan(v);
+    
+          case 'log':
+            return Math.log(v);
+    
+          case 'log2':
+            return Math.log2(v);
+    
+          case 'log10':
+            return Math.log10(v);
+    
+          case 'exp':
+            return Math.exp(v);
+    
+          case 'sqrt':
+            return Math.sqrt(v);
+    
+          case 'cbrt':
+            return Math.cbrt(v);
     
           default:
             return 0;
