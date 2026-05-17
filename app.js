@@ -99,21 +99,47 @@ const Home = {
     </div>
     
     <canvas ref="canvas" width="600" height="300"></canvas>
-
-    <svg width="400" height="200">
-
-      <line x1="200" y1="50" x2="120" y2="130" stroke="white"/>
-      <line x1="200" y1="50" x2="280" y2="130" stroke="white"/>
-
-      <circle cx="200" cy="50" r="20" fill="orange"/>
-      <text x="195" y="55" fill="black">{{ best.op }}</text>
-
-      <circle cx="120" cy="130" r="20" fill="skyblue"/>
-      <text x="115" y="135" fill="black">{{ best.left }}</text>
-
-      <circle cx="280" cy="130" r="20" fill="lightgreen"/>
-      <text x="275" y="135" fill="black">{{ best.right }}</text>
-
+    
+    <svg width="1200" height="600">
+    
+      <g v-if="best">
+        <template
+          v-for="(item, index) in renderTree(best, 600, 40, 300)"
+          :key="index"
+        >
+    
+          <!-- edges -->
+          <line
+            v-if="item.parent"
+            :x1="item.parent.x"
+            :y1="item.parent.y"
+            :x2="item.x"
+            :y2="item.y"
+            stroke="white"
+          />
+    
+          <!-- node -->
+          <circle
+            :cx="item.x"
+            :cy="item.y"
+            r="20"
+            :fill="item.color"
+          />
+    
+          <!-- label -->
+          <text
+            :x="item.x"
+            :y="item.y + 5"
+            text-anchor="middle"
+            fill="black"
+            font-size="12"
+          >
+            {{ item.label }}
+          </text>
+    
+        </template>
+      </g>
+    
     </svg>
 
     <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
@@ -399,6 +425,99 @@ const Home = {
         this.db = e.target.result;
       };
     },
+
+    renderTree(
+      node,
+      x = 600,
+      y = 40,
+      spread = 300,
+      parent = null,
+      result = []
+    ) {
+    
+      if (node == null) {
+        return result;
+      }
+    
+      // =========================
+      // TERMINAL NODE
+      // =========================
+    
+      if (typeof node === 'string') {
+    
+        result.push({
+          x,
+          y,
+          label: node,
+          color: 'lightgreen',
+          parent
+        });
+    
+        return result;
+      }
+    
+      // ERC number node
+      if (typeof node === 'number') {
+    
+        result.push({
+          x,
+          y,
+          label: node.toFixed(2),
+          color: 'khaki',
+          parent
+        });
+    
+        return result;
+      }
+    
+      // =========================
+      // OPERATOR NODE
+      // =========================
+    
+      result.push({
+        x,
+        y,
+        label: node.op,
+        color: 'orange',
+        parent
+      });
+    
+      // unary operator
+      if (node.child) {
+    
+        this.renderTree(
+          node.child,
+          x,
+          y + 80,
+          spread / 1.5,
+          { x, y },
+          result
+        );
+    
+        return result;
+      }
+    
+      // binary operator
+      this.renderTree(
+        node.left,
+        x - spread,
+        y + 80,
+        spread / 2,
+        { x, y },
+        result
+      );
+    
+      this.renderTree(
+        node.right,
+        x + spread,
+        y + 80,
+        spread / 2,
+        { x, y },
+        result
+      );
+    
+      return result;
+    }
 
     saveBest() {
       if (!this.db) return;
