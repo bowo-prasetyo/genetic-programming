@@ -98,6 +98,24 @@ const Home = {
       </div>
     </div>
     
+    <canvas ref="canvas" width="600" height="300"></canvas>
+
+    <svg width="400" height="200">
+
+      <line x1="200" y1="50" x2="120" y2="130" stroke="white"/>
+      <line x1="200" y1="50" x2="280" y2="130" stroke="white"/>
+
+      <circle cx="200" cy="50" r="20" fill="orange"/>
+      <text x="195" y="55" fill="black">{{ best.op }}</text>
+
+      <circle cx="120" cy="130" r="20" fill="skyblue"/>
+      <text x="115" y="135" fill="black">{{ best.left }}</text>
+
+      <circle cx="280" cy="130" r="20" fill="lightgreen"/>
+      <text x="275" y="135" fill="black">{{ best.right }}</text>
+
+    </svg>
+
     <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
     
       <h2>GP Parameters Settings</h2>
@@ -281,24 +299,6 @@ const Home = {
       </div>
 
     </div>
-
-    <canvas ref="canvas" width="600" height="300"></canvas>
-
-    <svg width="400" height="200">
-
-      <line x1="200" y1="50" x2="120" y2="130" stroke="white"/>
-      <line x1="200" y1="50" x2="280" y2="130" stroke="white"/>
-
-      <circle cx="200" cy="50" r="20" fill="orange"/>
-      <text x="195" y="55" fill="black">{{ best.op }}</text>
-
-      <circle cx="120" cy="130" r="20" fill="skyblue"/>
-      <text x="115" y="135" fill="black">{{ best.left }}</text>
-
-      <circle cx="280" cy="130" r="20" fill="lightgreen"/>
-      <text x="275" y="135" fill="black">{{ best.right }}</text>
-
-    </svg>
 
   </div>
   `,
