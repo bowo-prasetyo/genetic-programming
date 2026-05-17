@@ -33,7 +33,7 @@ canvas {
 }
 
 svg {
-  background: #fff;
+  background: transparent;
   margin-top: 20px;
 }
 
