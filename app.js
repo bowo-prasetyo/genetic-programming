@@ -198,14 +198,15 @@ const Home = {
         </div>
   
         <div style="margin-bottom:10px;">
-          <label><b>Min Error:</b></label>
-      
-          <input
-            type="number"
-            v-model.number="minError"
-            style="width:120px; padding:8px; margin-left:10px;"
-          />
-        </div>
+        <label><b>Min Error:</b></label>
+    
+        <input
+          type="number"
+          v-model.number="minError"
+          step="0.01"
+          style="width:120px; padding:8px; margin-left:10px;"
+        />
+      </div>
       
       <div style="margin-bottom:10px;">
         <label><b>Operators:</b></label>
