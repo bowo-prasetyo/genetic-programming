@@ -874,22 +874,43 @@ const Home = {
 };
 
 const About = {
+
+  data() {
+    return {
+      content: 'Loading README.md ...'
+    };
+  },
+
+  async mounted() {
+
+    try {
+
+      const response = await fetch(
+        'https://raw.githubusercontent.com/bowo-prasetyo/genetic-programming/main/README.md'
+      );
+
+      const markdown = await response.text();
+
+      // Optional:
+      // convert markdown -> HTML
+
+      this.content = marked.parse(markdown);
+
+    } catch (e) {
+
+      this.content =
+        '<p>Failed to load README.md</p>';
+
+      console.error(e);
+    }
+  },
+
   template: `
-  <div class="container">
-    <h1>About</h1>
+    <div class="container">
 
-    <p>
-      This is a minimal browser-based Genetic Programming system.
-    </p>
+      <div v-html="content"></div>
 
-    <ul>
-      <li>Vue 3 + Vue Router</li>
-      <li>Canvas graph rendering</li>
-      <li>SVG expression trees</li>
-      <li>Web Worker evolution engine</li>
-      <li>IndexedDB persistence</li>
-    </ul>
-  </div>
+    </div>
   `
 };
 
