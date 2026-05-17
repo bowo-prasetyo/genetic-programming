@@ -189,48 +189,102 @@ function generateFormulaSamples() {
 
 function fitness(program) {
 
-  let error = 0;
-  let count = 0;
+  let points = [];
 
-  const samples =
-  dataMode === 'dataset'
-    ? dataset
-    : generateFormulaSamples();
+  // =========================
+  // BUILD DATASET
+  // =========================
 
-  for (const sample of samples) {
-  
-    const x = sample.x;
-  
-    const expected = sample.y;
-    const actual = evaluate(program, x);
+  if (dataMode === 'dataset') {
 
-    if (!Number.isFinite(expected) || !Number.isFinite(actual)) continue;
+    points = dataset;
 
-    const diff = Math.abs(expected - actual);
+  } else {
 
-    if (!Number.isFinite(diff)) continue;
+    for (let x = minX; x <= maxX; x++) {
 
-    error += diff;
-    count++;
+      const y =
+        safeEvalFormula(targetFormula, x);
+
+      if (Number.isFinite(y)) {
+        points.push({ x, y });
+      }
+    }
   }
 
-  // ⚠️ prevent divide-by-zero collapse
-  if (count === 0) {
+  if (points.length === 0) {
     return {
       rawError: Infinity,
       totalFitness: Infinity
     };
   }
 
-  const avgError = error / count;
+  // =========================
+  // MEAN OF Y
+  // =========================
 
-  const complexityPenalty = treeSize(program) * 0.01; 
+  let meanY = 0;
 
-  const total = avgError + complexityPenalty;
+  for (const p of points) {
+    meanY += p.y;
+  }
+
+  meanY /= points.length;
+
+  // =========================
+  // SS_tot and SS_res
+  // =========================
+
+  let ssTot = 0;
+  let ssRes = 0;
+
+  for (const p of points) {
+
+    const predicted =
+      evaluate(program, p.x);
+
+    if (!Number.isFinite(predicted)) {
+      return {
+        rawError: Infinity,
+        totalFitness: Infinity
+      };
+    }
+
+    ssTot += Math.pow(p.y - meanY, 2);
+
+    ssRes += Math.pow(p.y - predicted, 2);
+  }
+
+  // Prevent divide-by-zero
+  if (ssTot === 0) {
+    return {
+      rawError: Infinity,
+      totalFitness: Infinity
+    };
+  }
+
+  // =========================
+  // R²
+  // =========================
+
+  const r2 =
+    1 - (ssRes / ssTot);
+
+  // convert to minimization
+  const error =
+    1 - r2;
+
+  // complexity penalty
+  const complexityPenalty =
+    treeSize(program) * 0.001;
+
+  const totalFitness =
+    error + complexityPenalty;
 
   return {
-    rawError: avgError,
-    totalFitness: Number.isFinite(total) ? total : Infinity
+    rawError: error,
+    r2,
+    totalFitness
   };
 }
 
