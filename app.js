@@ -97,9 +97,12 @@ const Home = {
         </div>
       </div>
     </div>
-    
+
+    <div>
     <canvas ref="canvas" width="600" height="300"></canvas>
-    
+    </div>
+
+    <div>
     <svg width="1200" height="600">
     
       <g v-if="best">
@@ -141,6 +144,7 @@ const Home = {
       </g>
     
     </svg>
+    </div>
 
     <div style="margin-top:20px; margin-bottom:20px; padding:15px; border:1px solid #444; border-radius:8px;">
     
