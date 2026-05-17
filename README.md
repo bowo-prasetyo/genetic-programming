@@ -264,7 +264,17 @@ Possible evolved approximation:
 
 # Example Datasets
 
+* [Salary Dataset - Simple linear regression](https://www.kaggle.com/datasets/abhishek14398/salary-dataset-simple-linear-regression)
+Evolved result:
+```txt
+(((4 / (2 * x)) + ((x * x) - 5)) + 5)
+```
+
 * [👩‍🏫 Student Scores - Simple 🗃️ Dataset](https://www.kaggle.com/datasets/samira1992/student-scores-simple-dataset)
+Evolved result:
+```txt
+10.174 * x
+```
 
 ---
 
