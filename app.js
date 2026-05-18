@@ -365,7 +365,11 @@ const Home = {
       treeDepth: 4,
       dataMode: 'formula', // formula | dataset
       uploadedData: [],
-      uploadedFileName: ''
+      uploadedFileName: '',
+      evolutionState: 'idle'
+  // idle
+  // running
+  // paused
     };
   },
 
@@ -405,7 +409,20 @@ const Home = {
       }
   
       return data;
-    }
+    },
+
+    isRunning() {
+    return this.evolutionState === 'running';
+  },
+
+  isPaused() {
+    return this.evolutionState === 'paused';
+  },
+
+  isIdle() {
+    return this.evolutionState === 'idle';
+  }
+    
   },
     
   mounted() {
