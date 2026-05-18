@@ -16,6 +16,7 @@ const Home = {
             type="radio"
             value="formula"
             v-model="dataMode"
+            :disabled="isRunning"
           >
           Generate From Formula
         </label>
@@ -25,6 +26,7 @@ const Home = {
             type="radio"
             value="dataset"
             v-model="dataMode"
+            :disabled="isRunning"
           >
           Upload Dataset
         </label>
@@ -38,6 +40,7 @@ const Home = {
             v-model="targetFormula"
             placeholder="x*x + 2"
             style="width:300px; padding:8px; margin-left:10px;"
+            :disabled="isRunning"
           />
         </div>
       
@@ -48,6 +51,7 @@ const Home = {
             type="number"
             v-model.number="minX"
             style="width:80px; padding:8px; margin-left:10px;"
+            :disabled="isRunning"
           />
       
           <span style="margin:0 10px;">to</span>
@@ -56,6 +60,7 @@ const Home = {
             type="number"
             v-model.number="maxX"
             style="width:80px; padding:8px;"
+            :disabled="isRunning"
           />
         </div>
       
@@ -73,6 +78,7 @@ const Home = {
             accept=".csv"
             @change="handleFileUpload"
             style="margin-left:10px;"
+            :disabled="isRunning"
           />
         </div>
       
@@ -184,6 +190,7 @@ const Home = {
             type="number"
             v-model.number="populationSize"
             style="width:120px; padding:8px; margin-left:10px;"
+            :disabled="isRunning"
           />
         </div>
       
@@ -194,6 +201,7 @@ const Home = {
             type="number"
             v-model.number="maxGenerations"
             style="width:120px; padding:8px; margin-left:10px;"
+            :disabled="isRunning"
           />
         </div>
   
@@ -205,6 +213,7 @@ const Home = {
           v-model.number="minError"
           step="0.01"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
       
@@ -212,71 +221,71 @@ const Home = {
         <label><b>Operators:</b></label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="+"> +
+          <input type="checkbox" v-model="enabledOperators" value="+" :disabled="isRunning"> +
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="-"> -
+          <input type="checkbox" v-model="enabledOperators" value="-" :disabled="isRunning"> -
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="*"> *
+          <input type="checkbox" v-model="enabledOperators" value="*" :disabled="isRunning"> *
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="/"> /
+          <input type="checkbox" v-model="enabledOperators" value="/" :disabled="isRunning"> /
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="pow"> pow
+          <input type="checkbox" v-model="enabledOperators" value="pow" :disabled="isRunning"> pow
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="sin"> sin
+          <input type="checkbox" v-model="enabledOperators" value="sin" :disabled="isRunning"> sin
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="cos"> cos
+          <input type="checkbox" v-model="enabledOperators" value="cos" :disabled="isRunning"> cos
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="tan"> tan
+          <input type="checkbox" v-model="enabledOperators" value="tan" :disabled="isRunning"> tan
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="asin"> asin
+          <input type="checkbox" v-model="enabledOperators" value="asin" :disabled="isRunning"> asin
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="acos"> acos
+          <input type="checkbox" v-model="enabledOperators" value="acos" :disabled="isRunning"> acos
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="atan"> atan
+          <input type="checkbox" v-model="enabledOperators" value="atan" :disabled="isRunning"> atan
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="log"> log
+          <input type="checkbox" v-model="enabledOperators" value="log" :disabled="isRunning"> log
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="log2"> log2
+          <input type="checkbox" v-model="enabledOperators" value="log2" :disabled="isRunning"> log2
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="log10"> log10
+          <input type="checkbox" v-model="enabledOperators" value="log10" :disabled="isRunning"> log10
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="exp"> exp
+          <input type="checkbox" v-model="enabledOperators" value="exp" :disabled="isRunning"> exp
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="sqrt"> sqrt
+          <input type="checkbox" v-model="enabledOperators" value="sqrt" :disabled="isRunning"> sqrt
         </label>
     
         <label style="margin-left:10px;">
-          <input type="checkbox" v-model="enabledOperators" value="cbrt"> cbrt
+          <input type="checkbox" v-model="enabledOperators" value="cbrt" :disabled="isRunning"> cbrt
         </label>
       </div>
     
@@ -288,6 +297,7 @@ const Home = {
           v-model.number="mutationRate"
           step="0.1"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
     
@@ -299,6 +309,7 @@ const Home = {
           v-model.number="crossoverRate"
           step="0.1"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
 
@@ -310,6 +321,7 @@ const Home = {
           v-model.number="elitismRate"
           step="0.01"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
 
@@ -320,6 +332,7 @@ const Home = {
           type="number"
           v-model.number="tournamentSize"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
 
@@ -330,6 +343,7 @@ const Home = {
           type="number"
           v-model.number="treeDepth"
           style="width:120px; padding:8px; margin-left:10px;"
+          :disabled="isRunning"
         />
       </div>
 
