@@ -264,6 +264,18 @@ const Home = {
         </label>
     
         <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="sinh" :disabled="isRunning"> sinh
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="cosh" :disabled="isRunning"> cosh
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="tanh" :disabled="isRunning"> tanh
+        </label>
+    
+        <label style="margin-left:10px;">
           <input type="checkbox" v-model="enabledOperators" value="asin" :disabled="isRunning"> asin
         </label>
     
@@ -273,6 +285,18 @@ const Home = {
     
         <label style="margin-left:10px;">
           <input type="checkbox" v-model="enabledOperators" value="atan" :disabled="isRunning"> atan
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="asinh" :disabled="isRunning"> asinh
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="acosh" :disabled="isRunning"> acosh
+        </label>
+    
+        <label style="margin-left:10px;">
+          <input type="checkbox" v-model="enabledOperators" value="atanh" :disabled="isRunning"> atanh
         </label>
     
         <label style="margin-left:10px;">
@@ -380,8 +404,8 @@ const Home = {
       minX: -5,
       maxX: 5,
       populationSize: 100,
-      minError: 0.01,      
-      maxGenerations: 1000,      
+      minError: 0.01,
+      maxGenerations: 1000,
       enabledOperators: ['+', '-', '*'],
       mutationRate: 0.1,
       crossoverRate: 0.7,
@@ -392,94 +416,97 @@ const Home = {
       uploadedData: [],
       uploadedFileName: '',
       evolutionState: 'idle'
-  // idle
-  // running
-  // paused
+      // idle
+      // running
+      // paused
     };
   },
 
   computed: {
-  
+
     expression() {
       return this.expressionText;
     },
-  
+
     sampleData() {
-  
+
       // uploaded dataset mode
       if (this.dataMode === 'dataset') {
         return this.uploadedData;
       }
-  
+
       // formula mode
       const data = [];
-  
+
       for (let x = this.minX; x <= this.maxX; x += 0.5) {
-  
+
         let y = 0;
-  
+
         try {
           y = Function(
             'x',
             `return ${this.targetFormula};`
           )(x);
-  
+
         } catch (e) {
           continue;
         }
-  
+
         if (Number.isFinite(y)) {
-          data.push({ x, y });
+          data.push({
+            x,
+            y
+          });
         }
       }
-  
+
       return data;
     },
 
     isRunning() {
-    return this.evolutionState === 'running';
-  },
+      return this.evolutionState === 'running';
+    },
 
-  isPaused() {
-    return this.evolutionState === 'paused';
-  },
+    isPaused() {
+      return this.evolutionState === 'paused';
+    },
 
-  isIdle() {
-    return this.evolutionState === 'idle';
-  },
+    isIdle() {
+      return this.evolutionState === 'idle';
+    },
 
     mainButtonText() {
 
-  switch (this.evolutionState) {
+      switch (this.evolutionState) {
 
-    case 'idle':
-      return 'Start Evolution';
+        case 'idle':
+          return 'Start Evolution';
 
-    case 'paused':
-      return 'Clear Results';
+        case 'paused':
+          return 'Clear Results';
 
-    case 'running':
-      return 'Running...';
-  }
-},
+        case 'running':
+          return 'Running...';
+      }
+    },
 
-secondaryButtonText() {
+    secondaryButtonText() {
 
-  switch (this.evolutionState) {
+      switch (this.evolutionState) {
 
-    case 'idle':
-      return 'Stop';
+        case 'idle':
+          return 'Stop';
 
-    case 'running':
-      return 'Stop';
+        case 'running':
+          return 'Stop';
 
-    case 'paused':
-      return 'Resume';
-  }
-}
-    
+        case 'paused':
+          return 'Resume';
+      }
+    }
+
   },
-    
+
   mounted() {
     this.initDB();
     this.drawCanvas();
@@ -514,17 +541,17 @@ secondaryButtonText() {
       parent = null,
       result = []
     ) {
-    
+
       if (node == null) {
         return result;
       }
-    
+
       // =========================
       // TERMINAL NODE
       // =========================
-    
+
       if (typeof node === 'string') {
-    
+
         result.push({
           x,
           y,
@@ -532,13 +559,13 @@ secondaryButtonText() {
           color: 'lightgreen',
           parent
         });
-    
+
         return result;
       }
-    
+
       // ERC number node
       if (typeof node === 'number') {
-    
+
         result.push({
           x,
           y,
@@ -546,14 +573,14 @@ secondaryButtonText() {
           color: 'khaki',
           parent
         });
-    
+
         return result;
       }
-    
+
       // =========================
       // OPERATOR NODE
       // =========================
-    
+
       result.push({
         x,
         y,
@@ -561,41 +588,47 @@ secondaryButtonText() {
         color: 'orange',
         parent
       });
-    
+
       // unary operator
       if (node.child) {
-    
+
         this.renderTree(
           node.child,
           x,
           y + 80,
-          spread / 1.5,
-          { x, y },
+          spread / 1.5, {
+            x,
+            y
+          },
           result
         );
-    
+
         return result;
       }
-    
+
       // binary operator
       this.renderTree(
         node.left,
         x - spread,
         y + 80,
-        spread / 2,
-        { x, y },
+        spread / 2, {
+          x,
+          y
+        },
         result
       );
-    
+
       this.renderTree(
         node.right,
         x + spread,
         y + 80,
-        spread / 2,
-        { x, y },
+        spread / 2, {
+          x,
+          y
+        },
         result
       );
-    
+
       return result;
     },
 
@@ -618,7 +651,7 @@ secondaryButtonText() {
       }
 
       this.evolutionState = 'running';
-      
+
       this.generation = 0;
       this.history = [];
       this.worker = new Worker('worker.js');
@@ -673,209 +706,226 @@ secondaryButtonText() {
 
     stopEvolution() {
 
-  if (!this.worker) {
-    return;
-  }
+      if (!this.worker) {
+        return;
+      }
 
-  this.worker.postMessage({
-    type: 'stop'
-  });
+      this.worker.postMessage({
+        type: 'stop'
+      });
 
-  this.evolutionState = 'paused';
-},
+      this.evolutionState = 'paused';
+    },
 
     resumeEvolution() {
 
-  if (!this.worker) {
-    return;
-  }
+      if (!this.worker) {
+        return;
+      }
 
-  this.worker.postMessage({
-    type: 'resume',
+      this.worker.postMessage({
+        type: 'resume',
 
-    config: {
+        config: {
 
-      targetFormula: this.targetFormula,
-      minX: this.minX,
-      maxX: this.maxX,
-      populationSize: this.populationSize,
-      minError: this.minError,
-      maxGenerations: this.maxGenerations,
-      operators: [...this.enabledOperators],
-      mutationRate: this.mutationRate,
-      crossoverRate: this.crossoverRate,
-      elitismRate: this.elitismRate,
-      tournamentSize: this.tournamentSize,
-      treeDepth: this.treeDepth,
-      dataMode: this.dataMode,
-      dataset:
-        JSON.parse(
-          JSON.stringify(this.uploadedData)
-        )
-    }
-  });
+          targetFormula: this.targetFormula,
+          minX: this.minX,
+          maxX: this.maxX,
+          populationSize: this.populationSize,
+          minError: this.minError,
+          maxGenerations: this.maxGenerations,
+          operators: [...this.enabledOperators],
+          mutationRate: this.mutationRate,
+          crossoverRate: this.crossoverRate,
+          elitismRate: this.elitismRate,
+          tournamentSize: this.tournamentSize,
+          treeDepth: this.treeDepth,
+          dataMode: this.dataMode,
+          dataset: JSON.parse(
+            JSON.stringify(this.uploadedData)
+          )
+        }
+      });
 
-},
-    
+    },
+
     evaluateTree(node, x) {
-    
+
       if (node == null) {
         return 0;
       }
-    
+
       // terminal
       if (typeof node === 'string') {
-    
+
         if (node === 'x') {
           return x;
         }
-    
+
         return Number(node);
       }
-    
+
       // unary
       if (node.child) {
-    
+
         const v =
           this.evaluateTree(node.child, x);
-    
+
         switch (node.op) {
-    
+
           case 'sin':
             return Math.sin(v);
-    
+
           case 'cos':
             return Math.cos(v);
-    
+
           case 'tan':
             return Math.tan(v);
-    
+
+          case 'sinh':
+            return Math.sinh(v);
+
+          case 'cosh':
+            return Math.cosh(v);
+
+          case 'tanh':
+            return Math.tanh(v);
+
           case 'asin':
             return Math.asin(v);
-    
+
           case 'acos':
             return Math.acos(v);
-    
+
           case 'atan':
             return Math.atan(v);
-    
+
+          case 'asinh':
+            return Math.asinh(v);
+
+          case 'acosh':
+            return Math.acosh(v);
+
+          case 'atanh':
+            return Math.atanh(v);
+
           case 'log':
             return Math.log(v);
-    
+
           case 'log2':
             return Math.log2(v);
-    
+
           case 'log10':
             return Math.log10(v);
-    
+
           case 'exp':
             return Math.exp(v);
-    
+
           case 'sqrt':
             return Math.sqrt(v);
-    
+
           case 'cbrt':
             return Math.cbrt(v);
-    
+
           default:
             return 0;
         }
       }
-    
+
       // binary
       const left =
         this.evaluateTree(node.left, x);
-    
+
       const right =
         this.evaluateTree(node.right, x);
-    
+
       switch (node.op) {
-    
+
         case '+':
           return left + right;
-    
+
         case '-':
           return left - right;
-    
+
         case '*':
           return left * right;
-    
+
         case '/':
           return left / right;
-    
+
         case 'pow':
           return Math.pow(left, right);
       }
-    
+
       return 0;
     },
-    
+
     drawCanvas() {
       const canvas = this.$refs.canvas;
-    
+
       if (!canvas) return;
-    
+
       const ctx = canvas.getContext('2d');
-    
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
       // =========================
       // FIND DATA RANGE
       // =========================
-    
+
       let points = this.sampleData || [];
-    
+
       if (!points.length) return;
-    
+
       const xs = points.map(p => p.x);
       const ys = points.map(p => p.y);
-    
+
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
-    
+
       let minY = Math.min(...ys);
       let maxY = Math.max(...ys);
-      
+
       if (minY === maxY) {
         minY -= 1;
         maxY += 1;
-      }  
-      
+      }
+
       const padding = 20;
-    
+
       function toScreenX(x) {
         return padding +
           ((x - minX) / (maxX - minX)) *
           (canvas.width - padding * 2);
       }
-    
+
       function toScreenY(y) {
         return canvas.height - padding -
           ((y - minY) / (maxY - minY)) *
           (canvas.height - padding * 2);
       }
-    
+
       // =========================
       // DRAW GP CURVE FIRST
       // =========================
-    
+
       ctx.beginPath();
-    
+
       let first = true;
-    
+
       for (let px = 0; px < canvas.width; px++) {
-    
+
         const logicalX =
           minX + (px / canvas.width) * (maxX - minX);
-    
+
         const y =
           this.evaluateTree(this.best, logicalX);
-    
+
         if (!Number.isFinite(y)) continue;
-    
+
         const screenX = toScreenX(logicalX);
         const screenY = toScreenY(y);
-    
+
         if (first) {
           ctx.moveTo(screenX, screenY);
           first = false;
@@ -883,46 +933,46 @@ secondaryButtonText() {
           ctx.lineTo(screenX, screenY);
         }
       }
-    
+
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 2;
       ctx.stroke();
-    
+
       // =========================
       // DOWNSAMPLE DATA
       // =========================
-    
+
       const maxPoints = 30;
-    
+
       let sampled = points;
-    
+
       if (points.length > maxPoints) {
-    
+
         sampled = [];
-    
+
         const step =
           points.length / maxPoints;
-    
+
         for (let i = 0; i < maxPoints; i++) {
           sampled.push(
             points[Math.floor(i * step)]
           );
         }
       }
-    
+
       // =========================
       // DRAW DATA POINTS LAST
       // =========================
-    
+
       ctx.fillStyle = 'cyan';
-    
+
       for (const p of sampled) {
-    
+
         const sx = toScreenX(p.x);
         const sy = toScreenY(p.y);
-    
+
         ctx.beginPath();
-    
+
         ctx.arc(
           sx,
           sy,
@@ -930,142 +980,145 @@ secondaryButtonText() {
           0,
           Math.PI * 2
         );
-    
+
         ctx.fill();
       }
     },
 
     handleFileUpload(event) {
-    
+
       const file = event.target.files[0];
-    
+
       if (!file) return;
-    
+
       this.uploadedFileName = file.name;
-    
+
       const reader = new FileReader();
-    
+
       reader.onload = (e) => {
-    
+
         const text = e.target.result;
-    
+
         const lines =
           text.split(/\r?\n/);
-    
+
         const data = [];
-    
+
         for (let i = 1; i < lines.length; i++) {
-    
+
           const line = lines[i].trim();
-    
+
           if (!line) continue;
-    
+
           const parts = line.split(',');
-    
+
           if (parts.length < 2) continue;
-    
+
           const x = Number(parts[0]);
           const y = Number(parts[1]);
-    
+
           if (
             Number.isFinite(x) &&
             Number.isFinite(y)
           ) {
-            data.push({ x, y });
+            data.push({
+              x,
+              y
+            });
           }
         }
-    
+
         this.uploadedData = data;
-    
+
         console.log(
           'Dataset loaded:',
           data.length
         );
       };
-    
+
       reader.readAsText(file);
     },
 
     mainAction() {
 
-  if (this.evolutionState === 'idle') {
-    this.startEvolution();
-    return;
-  }
+      if (this.evolutionState === 'idle') {
+        this.startEvolution();
+        return;
+      }
 
-  if (this.evolutionState === 'paused') {
-    this.clearResults();
-  }
-},
+      if (this.evolutionState === 'paused') {
+        this.clearResults();
+      }
+    },
 
     secondaryAction() {
 
-  if (this.evolutionState === 'running') {
-    this.stopEvolution();
-    return;
-  }
+      if (this.evolutionState === 'running') {
+        this.stopEvolution();
+        return;
+      }
 
-  if (this.evolutionState === 'paused') {
-    this.resumeEvolution();
-  }
-},
+      if (this.evolutionState === 'paused') {
+        this.resumeEvolution();
+      }
+    },
 
     clearResults() {
 
-  const confirmed =
-    confirm(
-      'Clear all evolution results?'
-    );
+      const confirmed =
+        confirm(
+          'Clear all evolution results?'
+        );
 
-  if (!confirmed) {
-    return;
-  }
+      if (!confirmed) {
+        return;
+      }
 
-  // stop worker completely
+      // stop worker completely
 
-  if (this.worker) {
+      if (this.worker) {
 
-    this.worker.terminate();
+        this.worker.terminate();
 
-    this.worker = null;
-  }
+        this.worker = null;
+      }
 
-  // clear memory
+      // clear memory
 
-  this.best = null;
+      this.best = null;
 
-  this.bestFitness = 0;
+      this.bestFitness = 0;
 
-  this.expressionText = '';
+      this.expressionText = '';
 
-  this.history = [];
+      this.history = [];
 
-  this.generation = 0;
+      this.generation = 0;
 
-  // clear graph
+      // clear graph
 
-  this.drawCanvas();
+      this.drawCanvas();
 
-  // clear indexedDB
+      // clear indexedDB
 
-  if (this.db) {
+      if (this.db) {
 
-    const tx =
-      this.db.transaction(
-        ['bestPrograms'],
-        'readwrite'
-      );
+        const tx =
+          this.db.transaction(
+            ['bestPrograms'],
+            'readwrite'
+          );
 
-    const store =
-      tx.objectStore(
-        'bestPrograms'
-      );
+        const store =
+          tx.objectStore(
+            'bestPrograms'
+          );
 
-    store.clear();
-  }
+        store.clear();
+      }
 
-  this.evolutionState = 'idle';
-}
+      this.evolutionState = 'idle';
+    }
 
   }
 };
@@ -1111,9 +1164,14 @@ const About = {
   `
 };
 
-const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About }
+const routes = [{
+    path: '/',
+    component: Home
+  },
+  {
+    path: '/about',
+    component: About
+  }
 ];
 
 const router = VueRouter.createRouter({
