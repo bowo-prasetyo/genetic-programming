@@ -1012,6 +1012,63 @@ secondaryButtonText() {
   if (this.evolutionState === 'paused') {
     this.resumeEvolution();
   }
+},
+
+    clearResults() {
+
+  const confirmed =
+    confirm(
+      'Clear all evolution results?'
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // stop worker completely
+
+  if (this.worker) {
+
+    this.worker.terminate();
+
+    this.worker = null;
+  }
+
+  // clear memory
+
+  this.best = null;
+
+  this.bestFitness = 0;
+
+  this.expressionText = '';
+
+  this.history = [];
+
+  this.generation = 0;
+
+  // clear graph
+
+  this.drawCanvas();
+
+  // clear indexedDB
+
+  if (this.db) {
+
+    const tx =
+      this.db.transaction(
+        ['bestPrograms'],
+        'readwrite'
+      );
+
+    const store =
+      tx.objectStore(
+        'bestPrograms'
+      );
+
+    store.clear();
+  }
+
+  this.evolutionState = 'idle';
 }
 
   }
