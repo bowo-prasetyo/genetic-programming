@@ -938,7 +938,19 @@ secondaryButtonText() {
       };
     
       reader.readAsText(file);
-    }    
+    },
+
+    mainAction() {
+
+  if (this.evolutionState === 'idle') {
+    this.startEvolution();
+    return;
+  }
+
+  if (this.evolutionState === 'paused') {
+    this.clearResults();
+  }
+}
 
   }
 };
