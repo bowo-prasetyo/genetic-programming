@@ -105,7 +105,7 @@ const Home = {
     </div>
 
 <button
-  @click="mainAction",
+  @click="mainAction"
   :disabled="isRunning"
 >
   {{ mainButtonText }}
