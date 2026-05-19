@@ -512,6 +512,17 @@ const Home = {
   mounted() {
     this.initDB();
     this.drawCanvas();
+    window.addEventListener(
+  'beforeunload',
+  () => {
+
+    if (
+      this.evolutionState === 'running'
+    ) {
+      this.saveCheckpoint();
+    }
+  }
+);
   },
 
   methods: {
@@ -671,32 +682,7 @@ const Home = {
       this.history = [];
       this.worker = new Worker('worker.js');
 
-      this.worker.onmessage = (e) => {
-        const msg = e.data;
-
-        if (msg.type === 'update') {
-          this.best = msg.best;
-          this.bestFitness = msg.fitness;
-          this.expressionText = msg.expression;
-          this.generation = msg.generation;
-
-          this.history.unshift({
-            generation: msg.generation,
-            fitness: this.bestFitness,
-            error: msg.rawError,
-            r2: msg.r2,
-            expression: msg.expression
-          });
-
-          if (this.history.length > 3) {
-            this.history.pop();
-          }
-
-          this.drawCanvas();
-          this.saveBest();
-        }
-        this.evolutionState = 'running';
-      };
+      this.bindWorker();
 
       this.worker.postMessage({
         type: 'start',
@@ -1133,6 +1119,19 @@ const Home = {
       }
 
       this.evolutionState = 'idle';
+
+      if (this.db) {
+
+  const tx = this.db.transaction(
+    ['sessions'],
+    'readwrite'
+  );
+
+  const store = tx.objectStore('sessions');
+
+  store.delete('latest');
+}
+      
     },
 
     async saveCheckpoint() {
@@ -1226,6 +1225,147 @@ const Home = {
     }
 
     this.restoreSession(result);
+  };
+},
+
+    restoreSession(state) {
+
+  this.generation =
+    state.generation || 0;
+
+  this.best =
+    state.best || null;
+
+  this.bestFitness =
+    state.bestFitness || 0;
+
+  this.history =
+    state.history || [];
+
+  this.expressionText =
+    state.expressionText || '';
+
+  this.evolutionState =
+    'paused';
+
+  const config =
+    state.config || {};
+
+  this.targetFormula =
+    config.targetFormula || 'x*x + 2';
+
+  this.minX =
+    config.minX ?? -5;
+
+  this.maxX =
+    config.maxX ?? 5;
+
+  this.populationSize =
+    config.populationSize || 100;
+
+  this.minError =
+    config.minError || 0.01;
+
+  this.maxGenerations =
+    config.maxGenerations || 1000;
+
+  this.enabledOperators =
+    config.operators || ['+', '-', '*'];
+
+  this.mutationRate =
+    config.mutationRate || 0.1;
+
+  this.crossoverRate =
+    config.crossoverRate || 0.7;
+
+  this.elitismRate =
+    config.elitismRate || 0.05;
+
+  this.tournamentSize =
+    config.tournamentSize || 5;
+
+  this.treeDepth =
+    config.treeDepth || 4;
+
+  this.dataMode =
+    config.dataMode || 'formula';
+
+  this.uploadedData =
+    config.dataset || [];
+
+  this.latestPopulation =
+    state.population || [];
+
+  this.worker = new Worker('worker.js');
+
+  this.bindWorker();
+
+  this.worker.postMessage({
+    type: 'restore',
+
+    state: {
+      generation:
+        state.generation,
+
+      population:
+        state.population,
+
+      config
+    }
+  });
+
+  this.drawCanvas();
+}
+
+    bindWorker() {
+
+  this.worker.onmessage = (e) => {
+
+    const msg = e.data;
+
+    if (msg.type === 'update') {
+
+      this.best = msg.best;
+
+      this.bestFitness = msg.fitness;
+
+      this.expressionText = msg.expression;
+
+      this.generation = msg.generation;
+
+      this.latestPopulation =
+        msg.population;
+
+      this.history.unshift({
+        generation: msg.generation,
+        fitness: this.bestFitness,
+        error: msg.rawError,
+        r2: msg.r2,
+        expression: msg.expression
+      });
+
+      if (this.history.length > 3) {
+        this.history.pop();
+      }
+
+      this.drawCanvas();
+
+      this.saveBest();
+
+      if (
+        this.generation %
+        this.checkpointInterval === 0
+      ) {
+        this.saveCheckpoint();
+      }
+    }
+
+    if (msg.type === 'finished') {
+
+      this.evolutionState = 'paused';
+
+      this.saveCheckpoint();
+    }
   };
 }
 
