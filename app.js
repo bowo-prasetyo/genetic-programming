@@ -629,6 +629,7 @@ secondaryButtonText() {
           this.best = msg.best;
           this.bestFitness = msg.fitness;
           this.expressionText = msg.expression;
+          this.generation = msg.generation;
 
           this.history.unshift({
             generation: msg.generation,
