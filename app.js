@@ -112,6 +112,7 @@ const Home = {
 </button>
 
 <button
+  v-if="!isIdle"
   @click="secondaryAction"
 >
   {{ secondaryButtonText }}
