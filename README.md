@@ -57,9 +57,15 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 * `sin`
 * `cos`
 * `tan`
+* `sinh`
+* `cosh`
+* `tanh`
 * `asin`
 * `acos`
 * `atan`
+* `asinh`
+* `acosh`
+* `atanh`
 * `log`
 * `log2`
 * `log10`
