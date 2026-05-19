@@ -444,7 +444,37 @@ const Home = {
 
   isIdle() {
     return this.evolutionState === 'idle';
+  },
+
+    mainButtonText() {
+
+  switch (this.evolutionState) {
+
+    case 'idle':
+      return 'Start Evolution';
+
+    case 'paused':
+      return 'Clear Results';
+
+    case 'running':
+      return 'Running...';
   }
+},
+
+secondaryButtonText() {
+
+  switch (this.evolutionState) {
+
+    case 'idle':
+      return 'Stop';
+
+    case 'running':
+      return 'Stop';
+
+    case 'paused':
+      return 'Resume';
+  }
+}
     
   },
     
