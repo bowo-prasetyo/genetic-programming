@@ -7,9 +7,15 @@ const OP_ARITY = {
   'sin': 1,
   'cos': 1,
   'tan': 1,
+  'sinh': 1,
+  'cosh': 1,
+  'tanh': 1,
   'asin': 1,
   'acos': 1,
   'atan': 1,
+  'asinh': 1,
+  'acosh': 1,
+  'atanh': 1,
   'log': 1,
   'log2': 1,
   'log10': 1,
@@ -19,10 +25,18 @@ const OP_ARITY = {
 };
 
 let targetFormula = "x*x + 2";
-let OPERATORS = [
-  { symbol: '+', arity: 2 },
-  { symbol: '-', arity: 2 },
-  { symbol: '*', arity: 2 }
+let OPERATORS = [{
+    symbol: '+',
+    arity: 2
+  },
+  {
+    symbol: '-',
+    arity: 2
+  },
+  {
+    symbol: '*',
+    arity: 2
+  }
 ];
 let minError = 0.1;
 let maxGenerations = 1000;
@@ -104,9 +118,9 @@ function randomTree(depth = 0) {
 function evaluate(node, x) {
 
   if (typeof node === 'string') {
-    return node === 'x'
-      ? x
-      : Number(node);
+    return node === 'x' ?
+      x :
+      Number(node);
   }
 
   // unary operators
@@ -115,18 +129,42 @@ function evaluate(node, x) {
     const v = evaluate(node.child, x);
 
     switch (node.op) {
-      case 'sin': return Math.sin(v);
-      case 'cos': return Math.cos(v);
-      case 'tan': return Math.tan(v);
-      case 'asin': return Math.asin(v);
-      case 'acos': return Math.acos(v);
-      case 'atan': return Math.atan(v);
-      case 'log': return Math.log(v);
-      case 'log2': return Math.log2(v);
-      case 'log10': return Math.log10(v);
-      case 'exp': return Math.exp(v);
-      case 'sqrt': return Math.sqrt(v);
-      case 'cbrt': return Math.cbrt(v);
+      case 'sin':
+        return Math.sin(v);
+      case 'cos':
+        return Math.cos(v);
+      case 'tan':
+        return Math.tan(v);
+      case 'sinh':
+        return Math.sinh(v);
+      case 'cosh':
+        return Math.cosh(v);
+      case 'tanh':
+        return Math.tanh(v);
+      case 'asin':
+        return Math.asin(v);
+      case 'acos':
+        return Math.acos(v);
+      case 'atan':
+        return Math.atan(v);
+      case 'asinh':
+        return Math.asinh(v);
+      case 'acosh':
+        return Math.acosh(v);
+      case 'atanh':
+        return Math.atanh(v);
+      case 'log':
+        return Math.log(v);
+      case 'log2':
+        return Math.log2(v);
+      case 'log10':
+        return Math.log10(v);
+      case 'exp':
+        return Math.exp(v);
+      case 'sqrt':
+        return Math.sqrt(v);
+      case 'cbrt':
+        return Math.cbrt(v);
     }
   }
 
@@ -138,11 +176,16 @@ function evaluate(node, x) {
     evaluate(node.right, x);
 
   switch (node.op) {
-    case '+': return left + right;
-    case '-': return left - right;
-    case '*': return left * right;
-    case '/': return left / right;
-    case 'pow': return Math.pow(left, right);
+    case '+':
+      return left + right;
+    case '-':
+      return left - right;
+    case '*':
+      return left * right;
+    case '/':
+      return left / right;
+    case 'pow':
+      return Math.pow(left, right);
   }
 
   return 0;
@@ -170,9 +213,7 @@ function generateFormulaSamples() {
   const samples = [];
 
   for (
-    let x = minX;
-    x <= maxX;
-    x++
+    let x = minX; x <= maxX; x++
   ) {
 
     const y =
@@ -181,7 +222,10 @@ function generateFormulaSamples() {
         x
       );
 
-    samples.push({ x, y });
+    samples.push({
+      x,
+      y
+    });
   }
 
   return samples;
@@ -207,7 +251,10 @@ function fitness(program) {
         safeEvalFormula(targetFormula, x);
 
       if (Number.isFinite(y)) {
-        points.push({ x, y });
+        points.push({
+          x,
+          y
+        });
       }
     }
   }
@@ -316,9 +363,9 @@ function crossover(a, b) {
     typeof a === 'string' ||
     typeof b === 'string'
   ) {
-    return Math.random() < 0.5
-      ? clone(a)
-      : clone(b);
+    return Math.random() < 0.5 ?
+      clone(a) :
+      clone(b);
   }
 
   // unary node handling
@@ -332,9 +379,9 @@ function crossover(a, b) {
 
   // binary node handling
   return {
-    op: Math.random() < 0.5
-      ? a.op
-      : b.op,
+    op: Math.random() < 0.5 ?
+      a.op :
+      b.op,
 
     left: crossover(a.left, b.left),
 
@@ -352,7 +399,7 @@ function normalizeNode(node, depth = 0) {
     return node;
   }
 
-  const unaryOps = ['sin','cos','tan','asin','acos','atan','log','log2','log10','exp','sqrt','cbrt'];
+  const unaryOps = ['sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh', 'asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'log', 'log2', 'log10', 'exp', 'sqrt', 'cbrt'];
 
   // unary operator
   if (unaryOps.includes(node.op)) {
@@ -382,38 +429,38 @@ function normalizeNode(node, depth = 0) {
 }
 
 function mutate(node, depth = 0) {
-  
+
   if (node == null) {
     return randomTree(depth);
   }
-  
+
   if (typeof node === 'string') {
-  
+
     // mutate terminal
     if (Math.random() < mutationRate) {
-  
+
       // keep x sometimes
       if (node === 'x' && Math.random() < 0.5) {
         return 'x';
       }
-  
+
       // numeric perturbation
       const n = Number(node);
-  
+
       if (!isNaN(n)) {
-  
+
         const delta =
           (Math.random() * 2 - 1);
-  
+
         return (n + delta).toFixed(3);
       }
-  
+
       return randomTerminal();
     }
-  
+
     return node;
   }
-  
+
   if (
     Math.random() < mutationRate &&
     depth < treeDepth
@@ -476,11 +523,11 @@ function treeToString(node) {
   if (node.child) {
     return `${node.op}(${treeToString(node.child)})`;
   }
-  
+
   if (node.op === 'pow') {
     return `pow(${treeToString(node.left)}, ${treeToString(node.right)})`;
   }
-  
+
   return `(${treeToString(node.left)} ${node.op} ${treeToString(node.right)})`;
 }
 
@@ -503,8 +550,8 @@ function evolve() {
 
   population.sort(
     (a, b) =>
-      getFitness(a).totalFitness -
-      getFitness(b).totalFitness
+    getFitness(a).totalFitness -
+    getFitness(b).totalFitness
   );
 
   const best = population[0];
@@ -528,7 +575,7 @@ function evolve() {
     rawError <= minError ||
     generation >= maxGenerations
   ) {
-  
+
     running = false;
 
     postMessage({
@@ -539,7 +586,7 @@ function evolve() {
       generation,
       expression: treeToString(best)
     });
-    
+
     return;
   }
 
@@ -547,11 +594,11 @@ function evolve() {
 
   // Elitism
   const eliteCount = Math.floor(population.length * elitismRate);
-  
+
   for (let i = 0; i < eliteCount; i++) {
     next.push(clone(population[i]));
   }
-  
+
   // Breed new population
   while (next.length < population.length - 20) {
 
@@ -560,11 +607,11 @@ function evolve() {
 
     const parentB =
       tournamentSelection(population, tournamentSize);
-    
+
     let child =
-      Math.random() < crossoverRate
-        ? crossover(parentA, parentB)
-        : clone(parentA);
+      Math.random() < crossoverRate ?
+      crossover(parentA, parentB) :
+      clone(parentA);
 
     child = mutate(child);
 
@@ -576,13 +623,13 @@ function evolve() {
   for (let i = 0; i < immigrantCount; i++) {
     next.push(randomTree());
   }
-  
+
   while (next.length < populationSize) {
     next.push(clone(population[randomInt(population.length)]));
-  } 
-  
-  population = next;      
-  fitnessCache.clear();    
+  }
+
+  population = next;
+  fitnessCache.clear();
 }
 
 function loop() {
@@ -600,13 +647,24 @@ function loop() {
 function buildOperators(ops) {
   const operators = [];
   for (let i = 0; i < ops.length; i++) {
-    operators.push({ symbol: ops[i], arity: OP_ARITY[ops[i]] });
+    operators.push({
+      symbol: ops[i],
+      arity: OP_ARITY[ops[i]]
+    });
   }
   if (!operators || operators.length === 0) {
-    return [
-      { symbol: '+', arity: 2 },
-      { symbol: '-', arity: 2 },
-      { symbol: '*', arity: 2 }
+    return [{
+        symbol: '+',
+        arity: 2
+      },
+      {
+        symbol: '-',
+        arity: 2
+      },
+      {
+        symbol: '*',
+        arity: 2
+      }
     ];
   }
   return operators;
@@ -614,7 +672,7 @@ function buildOperators(ops) {
 
 onmessage = (e) => {
   const msg = e.data;
-  
+
   if (msg.type === 'start') {
     initPopulation(populationSize);
     targetFormula = msg.config.targetFormula;
@@ -631,9 +689,9 @@ onmessage = (e) => {
     treeDepth = msg.config.treeDepth;
     dataMode = msg.config.dataMode;
     dataset = (msg.config.dataset || []).map(p => ({
-        x: Number(p.x),
-        y: Number(p.y)
-      })) || [];
+      x: Number(p.x),
+      y: Number(p.y)
+    })) || [];
     running = true;
     loop();
   }
@@ -644,10 +702,10 @@ onmessage = (e) => {
 
   if (msg.type === 'resume') {
 
-  // reload parameters
+    // reload parameters
 
-  targetFormula =
-    msg.config.targetFormula;
+    targetFormula =
+      msg.config.targetFormula;
     minError = msg.config.minError;
     maxGenerations = msg.config.maxGenerations;
     populationSize = msg.config.populationSize;
@@ -661,15 +719,15 @@ onmessage = (e) => {
     treeDepth = msg.config.treeDepth;
     dataMode = msg.config.dataMode;
     dataset = (msg.config.dataset || []).map(p => ({
-        x: Number(p.x),
-        y: Number(p.y)
-      })) || [];
+      x: Number(p.x),
+      y: Number(p.y)
+    })) || [];
     running = true;
     loop();
 
-  running = true;
+    running = true;
 
-  loop();
-}
-  
+    loop();
+  }
+
 };
