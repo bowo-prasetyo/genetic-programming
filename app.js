@@ -415,10 +415,12 @@ const Home = {
       dataMode: 'formula', // formula | dataset
       uploadedData: [],
       uploadedFileName: '',
-      evolutionState: 'idle'
+      evolutionState: 'idle',
       // idle
       // running
       // paused
+      checkpointInterval: 1,
+      hasRestorableSession: false
     };
   },
 
@@ -515,23 +517,36 @@ const Home = {
   methods: {
 
     initDB() {
-      const request = indexedDB.open('gp-db', 1);
 
-      request.onupgradeneeded = (e) => {
-        const db = e.target.result;
+  const request = indexedDB.open('gp-db', 2);
 
-        if (!db.objectStoreNames.contains('bestPrograms')) {
-          db.createObjectStore('bestPrograms', {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-        }
-      };
+  request.onupgradeneeded = (e) => {
 
-      request.onsuccess = (e) => {
-        this.db = e.target.result;
-      };
-    },
+    const db = e.target.result;
+
+    if (!db.objectStoreNames.contains('bestPrograms')) {
+
+      db.createObjectStore('bestPrograms', {
+        keyPath: 'id',
+        autoIncrement: true
+      });
+    }
+
+    if (!db.objectStoreNames.contains('sessions')) {
+
+      db.createObjectStore('sessions', {
+        keyPath: 'id'
+      });
+    }
+  };
+
+  request.onsuccess = async (e) => {
+
+    this.db = e.target.result;
+
+    await this.checkRestorableSession();
+  };
+},
 
     renderTree(
       node,
@@ -1118,7 +1133,101 @@ const Home = {
       }
 
       this.evolutionState = 'idle';
+    },
+
+    async saveCheckpoint() {
+
+  if (!this.db || !this.worker) {
+    return;
+  }
+
+  const state = {
+    id: 'latest',
+
+    timestamp: Date.now(),
+
+    generation: this.generation,
+
+    population:
+      this.latestPopulation || [],
+
+    best:
+      JSON.parse(JSON.stringify(this.best)),
+
+    bestFitness: this.bestFitness,
+
+    history:
+      JSON.parse(JSON.stringify(this.history)),
+
+    expressionText: this.expressionText,
+
+    evolutionState: this.evolutionState,
+
+    config: {
+      targetFormula: this.targetFormula,
+      minX: this.minX,
+      maxX: this.maxX,
+      populationSize: this.populationSize,
+      minError: this.minError,
+      maxGenerations: this.maxGenerations,
+      operators: [...this.enabledOperators],
+      mutationRate: this.mutationRate,
+      crossoverRate: this.crossoverRate,
+      elitismRate: this.elitismRate,
+      tournamentSize: this.tournamentSize,
+      treeDepth: this.treeDepth,
+      dataMode: this.dataMode,
+      dataset:
+        JSON.parse(JSON.stringify(this.uploadedData))
     }
+  };
+
+  const tx = this.db.transaction(
+    ['sessions'],
+    'readwrite'
+  );
+
+  const store = tx.objectStore('sessions');
+
+  store.put(state);
+},
+
+    async checkRestorableSession() {
+
+  if (!this.db) {
+    return;
+  }
+
+  const tx = this.db.transaction(
+    ['sessions'],
+    'readonly'
+  );
+
+  const store = tx.objectStore('sessions');
+
+  const request = store.get('latest');
+
+  request.onsuccess = () => {
+
+    const result = request.result;
+
+    this.hasRestorableSession = !!result;
+
+    if (!result) {
+      return;
+    }
+
+    const confirmed = confirm(
+      'Restore previous GP evolution session?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.restoreSession(result);
+  };
+}
 
   }
 };
