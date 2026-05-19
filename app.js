@@ -616,6 +616,8 @@ secondaryButtonText() {
         this.worker.terminate();
       }
 
+      this.evolutionState = 'running';
+      
       this.generation = 0;
       this.history = [];
       this.worker = new Worker('worker.js');
@@ -719,7 +721,6 @@ secondaryButtonText() {
     }
   });
 
-  this.evolutionState = 'running';
 },
     
     evaluateTree(node, x) {
