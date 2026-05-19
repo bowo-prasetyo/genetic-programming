@@ -610,7 +610,7 @@ secondaryButtonText() {
       });
     },
 
-    start() {
+    startEvolution() {
       if (this.worker) {
         this.worker.terminate();
       }
@@ -642,6 +642,7 @@ secondaryButtonText() {
           this.drawCanvas();
           this.saveBest();
         }
+        this.evolutionState = 'running';
       };
 
       this.worker.postMessage({
@@ -665,12 +666,61 @@ secondaryButtonText() {
       });
     },
 
-    stop() {
-      if (!this.worker) return;
+    stopEvolution() {
 
-      this.worker.postMessage({ type: 'stop' });
-    },
+  const confirmed =
+    confirm(
+      'Stop current evolution?'
+    );
 
+  if (!confirmed) {
+    return;
+  }
+
+  if (this.worker) {
+
+    this.worker.postMessage({
+      type: 'stop'
+    });
+  }
+
+  this.evolutionState = 'paused';
+},
+
+    resumeEvolution() {
+
+  if (!this.worker) {
+    return;
+  }
+
+  this.worker.postMessage({
+    type: 'resume',
+
+    config: {
+
+      targetFormula: this.targetFormula,
+      minX: this.minX,
+      maxX: this.maxX,
+      populationSize: this.populationSize,
+      minError: this.minError,
+      maxGenerations: this.maxGenerations,
+      operators: [...this.enabledOperators],
+      mutationRate: this.mutationRate,
+      crossoverRate: this.crossoverRate,
+      elitismRate: this.elitismRate,
+      tournamentSize: this.tournamentSize,
+      treeDepth: this.treeDepth,
+      dataMode: this.dataMode,
+      dataset:
+        JSON.parse(
+          JSON.stringify(this.uploadedData)
+        )
+    }
+  });
+
+  this.evolutionState = 'running';
+},
+    
     evaluateTree(node, x) {
     
       if (node == null) {
@@ -949,6 +999,18 @@ secondaryButtonText() {
 
   if (this.evolutionState === 'paused') {
     this.clearResults();
+  }
+},
+
+    secondaryAction() {
+
+  if (this.evolutionState === 'running') {
+    this.stopEvolution();
+    return;
+  }
+
+  if (this.evolutionState === 'paused') {
+    this.resumeEvolution();
   }
 }
 
