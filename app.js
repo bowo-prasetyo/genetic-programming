@@ -673,21 +673,13 @@ secondaryButtonText() {
 
     stopEvolution() {
 
-  const confirmed =
-    confirm(
-      'Stop current evolution?'
-    );
-
-  if (!confirmed) {
+  if (!this.worker) {
     return;
   }
 
-  if (this.worker) {
-
-    this.worker.postMessage({
-      type: 'stop'
-    });
-  }
+  this.worker.postMessage({
+    type: 'stop'
+  });
 
   this.evolutionState = 'paused';
 },
