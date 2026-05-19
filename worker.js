@@ -641,4 +641,35 @@ onmessage = (e) => {
   if (msg.type === 'stop') {
     running = false;
   }
+
+  if (msg.type === 'resume') {
+
+  // reload parameters
+
+  targetFormula =
+    msg.config.targetFormula;
+    minError = msg.config.minError;
+    maxGenerations = msg.config.maxGenerations;
+    populationSize = msg.config.populationSize;
+    minX = msg.config.minX;
+    maxX = msg.config.maxX;
+    OPERATORS = buildOperators(msg.config.operators);
+    mutationRate = msg.config.mutationRate;
+    crossoverRate = msg.config.crossoverRate;
+    elitismRate = msg.config.elitismRate;
+    tournamentSize = msg.config.tournamentSize;
+    treeDepth = msg.config.treeDepth;
+    dataMode = msg.config.dataMode;
+    dataset = (msg.config.dataset || []).map(p => ({
+        x: Number(p.x),
+        y: Number(p.y)
+      })) || [];
+    running = true;
+    loop();
+
+  running = true;
+
+  loop();
+}
+  
 };
