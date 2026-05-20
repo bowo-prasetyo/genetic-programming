@@ -1315,7 +1315,7 @@ const Home = {
   });
 
   this.drawCanvas();
-}
+},
 
     bindWorker() {
 
@@ -1368,8 +1368,6 @@ const Home = {
     }
   };
 }
-
-  }
 };
 
 const About = {
