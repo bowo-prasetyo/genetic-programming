@@ -380,8 +380,7 @@ function crossover(a, b) {
   // binary node handling
   return {
     op: Math.random() < 0.5 ?
-      a.op :
-      b.op,
+      a.op : b.op,
 
     left: crossover(a.left, b.left),
 
@@ -733,76 +732,75 @@ onmessage = (e) => {
 
   if (msg.type === 'restore') {
 
-  generation =
-    msg.state.generation || 0;
+    generation =
+      msg.state.generation || 0;
 
-  population =
-    msg.state.population || [];
+    population =
+      msg.state.population || [];
 
-  while (
-  population.length <
-  config.populationSize
-) {
+    while (
+      population.length <
+      config.populationSize
+    ) {
 
-  population.push({
+      population.push({
 
-    tree:
-      randomTree(
-        config.treeDepth,
-        config.operators
-      ),
+        tree: randomTree(
+          config.treeDepth,
+          config.operators
+        ),
 
-    fitness: 0
-  });
-}
+        fitness: 0
+      });
+    }
 
-  const config =
-    msg.state.config || {};
+    const config =
+      msg.state.config || {};
 
-  targetFormula =
-    config.targetFormula;
+    targetFormula =
+      config.targetFormula;
 
-  minError =
-    config.minError;
+    minError =
+      config.minError;
 
-  maxGenerations =
-    config.maxGenerations;
+    maxGenerations =
+      config.maxGenerations;
 
-  populationSize =
-    config.populationSize;
+    populationSize =
+      config.populationSize;
 
-  minX = config.minX;
+    minX = config.minX;
 
-  maxX = config.maxX;
+    maxX = config.maxX;
 
-  OPERATORS =
-    buildOperators(config.operators);
+    OPERATORS =
+      buildOperators(config.operators);
 
-  mutationRate =
-    config.mutationRate;
+    mutationRate =
+      config.mutationRate;
 
-  crossoverRate =
-    config.crossoverRate;
+    crossoverRate =
+      config.crossoverRate;
 
-  elitismRate =
-    config.elitismRate;
+    elitismRate =
+      config.elitismRate;
 
-  tournamentSize =
-    config.tournamentSize;
+    tournamentSize =
+      config.tournamentSize;
 
-  treeDepth =
-    config.treeDepth;
+    treeDepth =
+      config.treeDepth;
 
-  dataMode =
-    config.dataMode;
+    dataMode =
+      config.dataMode;
 
-  dataset =
-    (config.dataset || []).map(p => ({
-      x: Number(p.x),
-      y: Number(p.y)
-    }));
+    dataset =
+      (config.dataset || []).map(p => ({
+        x: Number(p.x),
+        y: Number(p.y)
+      }));
 
-  running = false;
-}
+    running = false;
+  }
 
 };
