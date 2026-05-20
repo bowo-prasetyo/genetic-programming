@@ -1306,10 +1306,12 @@ const Home = {
 
   this.generation =
     state.generation || 0;
-
-  this.best =
-    state.best || null;
-
+      
+this.best =
+  this.decompressTree(
+    state.best
+  );
+      
   this.bestFitness =
     state.bestFitness || 0;
 
@@ -1367,8 +1369,18 @@ const Home = {
   this.uploadedData =
     config.dataset || [];
 
-  this.latestPopulation =
-    state.population || [];
+      this.latestPopulation =
+  (state.population || [])
+  .map(individual => ({
+
+    tree:
+      this.decompressTree(
+        individual.tree
+      ),
+
+    fitness:
+      individual.fitness
+  }));
 
   this.worker = new Worker('worker.js');
 
