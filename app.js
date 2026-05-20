@@ -1370,15 +1370,12 @@ const Home = {
 
       this.uploadedData =
         config.dataset || [];
-    
+
       this.latestPopulation =
-        (state.population || [])
-        .map(individual =>
-          this.decompressTree(
-            individual
-          )
-        )
-        .filter(Boolean);
+  (state.population || [])
+  .map(individual =>
+    this.decompressTree(individual.tree)
+  );
       
       this.worker = new Worker('worker.js');
 
