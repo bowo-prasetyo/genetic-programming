@@ -739,6 +739,23 @@ onmessage = (e) => {
   population =
     msg.state.population || [];
 
+  while (
+  population.length <
+  config.populationSize
+) {
+
+  population.push({
+
+    tree:
+      randomTree(
+        config.treeDepth,
+        config.operators
+      ),
+
+    fitness: 0
+  });
+}
+
   const config =
     msg.state.config || {};
 
