@@ -729,78 +729,80 @@ onmessage = (e) => {
 
     loop();
   }
-
+  
   if (msg.type === 'restore') {
-
-    generation =
-      msg.state.generation || 0;
-
-    population =
-      msg.state.population || [];
-
-    while (
-      population.length <
-      config.populationSize
-    ) {
-
-      population.push({
-
-        tree: randomTree(
-          config.treeDepth,
-          config.operators
-        ),
-
-        fitness: 0
-      });
-    }
-
+  
     const config =
       msg.state.config || {};
-
+  
+    generation =
+      msg.state.generation || 0;
+  
     targetFormula =
       config.targetFormula;
-
+  
     minError =
       config.minError;
-
+  
     maxGenerations =
       config.maxGenerations;
-
+  
     populationSize =
       config.populationSize;
-
-    minX = config.minX;
-
-    maxX = config.maxX;
-
+  
+    minX =
+      config.minX;
+  
+    maxX =
+      config.maxX;
+  
     OPERATORS =
       buildOperators(config.operators);
-
+  
     mutationRate =
       config.mutationRate;
-
+  
     crossoverRate =
       config.crossoverRate;
-
+  
     elitismRate =
       config.elitismRate;
-
+  
     tournamentSize =
       config.tournamentSize;
-
+  
     treeDepth =
       config.treeDepth;
-
+  
     dataMode =
       config.dataMode;
-
+  
     dataset =
       (config.dataset || []).map(p => ({
         x: Number(p.x),
         y: Number(p.y)
       }));
-
+  
+    // IMPORTANT:
+    // extract only raw trees
+  
+    population =
+      (msg.state.population || [])
+      .map(p => p.tree || p)
+      .filter(Boolean);
+  
+    // refill missing individuals
+  
+    while (
+      population.length <
+      populationSize
+    ) {
+      population.push(randomTree());
+    }
+  
+    fitnessCache.clear();
+  
     running = false;
   }
-
+  
 };
