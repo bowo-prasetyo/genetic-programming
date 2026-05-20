@@ -1,5 +1,5 @@
 const Home = {
-    template: `
+  template: `
   <div class="container">
 
     <h1>Browser Genetic Programming</h1>
@@ -387,271 +387,245 @@ const Home = {
   </div>
   `,
 
-    data() {
-      return {
-        worker: null,
-        generation: 0,
-        history: [],
-        best: {
-          left: 'x',
-          op: '+',
-          right: '1'
-        },
-        bestFitness: 0,
-        db: null,
-        expressionText: '',
-        targetFormula: 'x*x + 2',
-        minX: -5,
-        maxX: 5,
-        populationSize: 100,
-        minError: 0.01,
-        maxGenerations: 1000,
-        enabledOperators: ['+', '-', '*'],
-        mutationRate: 0.1,
-        crossoverRate: 0.7,
-        elitismRate: 0.05,
-        tournamentSize: 5,
-        treeDepth: 4,
-        dataMode: 'formula', // formula | dataset
-        uploadedData: [],
-        uploadedFileName: '',
-        evolutionState: 'idle',
-        // idle
-        // running
-        // paused
-        checkpointInterval: 1,
-        hasRestorableSession: false,
-        eliteCheckpointRate: 0.2,
-        lastCheckpointFitness: -Infinity,
-        lastSavedBestFitness: -Infinity
-      };
+  data() {
+    return {
+      worker: null,
+      generation: 0,
+      history: [],
+      best: {
+        left: 'x',
+        op: '+',
+        right: '1'
+      },
+      bestFitness: 0,
+      db: null,
+      expressionText: '',
+      targetFormula: 'x*x + 2',
+      minX: -5,
+      maxX: 5,
+      populationSize: 100,
+      minError: 0.01,
+      maxGenerations: 1000,
+      enabledOperators: ['+', '-', '*'],
+      mutationRate: 0.1,
+      crossoverRate: 0.7,
+      elitismRate: 0.05,
+      tournamentSize: 5,
+      treeDepth: 4,
+      dataMode: 'formula', // formula | dataset
+      uploadedData: [],
+      uploadedFileName: '',
+      evolutionState: 'idle',
+      // idle
+      // running
+      // paused
+      checkpointInterval: 1,
+      hasRestorableSession: false,
+      eliteCheckpointRate: 0.2,
+      lastCheckpointFitness: -Infinity,
+      lastSavedBestFitness: -Infinity
+    };
+  },
+
+  computed: {
+
+    expression() {
+      return this.expressionText;
     },
 
-    computed: {
+    sampleData() {
 
-      expression() {
-        return this.expressionText;
-      },
+      // uploaded dataset mode
+      if (this.dataMode === 'dataset') {
+        return this.uploadedData;
+      }
 
-      sampleData() {
+      // formula mode
+      const data = [];
 
-        // uploaded dataset mode
-        if (this.dataMode === 'dataset') {
-          return this.uploadedData;
+      for (let x = this.minX; x <= this.maxX; x += 0.5) {
+
+        let y = 0;
+
+        try {
+          y = Function(
+            'x',
+            `return ${this.targetFormula};`
+          )(x);
+
+        } catch (e) {
+          continue;
         }
 
-        // formula mode
-        const data = [];
-
-        for (let x = this.minX; x <= this.maxX; x += 0.5) {
-
-          let y = 0;
-
-          try {
-            y = Function(
-              'x',
-              `return ${this.targetFormula};`
-            )(x);
-
-          } catch (e) {
-            continue;
-          }
-
-          if (Number.isFinite(y)) {
-            data.push({
-              x,
-              y
-            });
-          }
-        }
-
-        return data;
-      },
-
-      isRunning() {
-        return this.evolutionState === 'running';
-      },
-
-      isPaused() {
-        return this.evolutionState === 'paused';
-      },
-
-      isIdle() {
-        return this.evolutionState === 'idle';
-      },
-
-      mainButtonText() {
-
-        switch (this.evolutionState) {
-
-          case 'idle':
-            return 'Start Evolution';
-
-          case 'paused':
-            return 'Clear Results';
-
-          case 'running':
-            return 'Running...';
-        }
-      },
-
-      secondaryButtonText() {
-
-        switch (this.evolutionState) {
-
-          case 'idle':
-            return 'Stop';
-
-          case 'running':
-            return 'Stop';
-
-          case 'paused':
-            return 'Resume';
+        if (Number.isFinite(y)) {
+          data.push({
+            x,
+            y
+          });
         }
       }
 
+      return data;
     },
 
-    mounted() {
-      this.initDB();
-      this.drawCanvas();
-      window.addEventListener(
-        'beforeunload',
-        () => {
-
-          if (
-            this.evolutionState === 'running'
-          ) {
-            this.saveCheckpoint();
-          }
-        }
-      );
+    isRunning() {
+      return this.evolutionState === 'running';
     },
 
-    methods: {
+    isPaused() {
+      return this.evolutionState === 'paused';
+    },
 
-      initDB() {
+    isIdle() {
+      return this.evolutionState === 'idle';
+    },
 
-        const request = indexedDB.open('gp-db', 2);
+    mainButtonText() {
 
-        request.onupgradeneeded = (e) => {
+      switch (this.evolutionState) {
 
-          const db = e.target.result;
+        case 'idle':
+          return 'Start Evolution';
 
-          if (!db.objectStoreNames.contains('bestPrograms')) {
+        case 'paused':
+          return 'Clear Results';
 
-            db.createObjectStore('bestPrograms', {
-              keyPath: 'id',
-              autoIncrement: true
-            });
-          }
+        case 'running':
+          return 'Running...';
+      }
+    },
 
-          if (!db.objectStoreNames.contains('sessions')) {
+    secondaryButtonText() {
 
-            db.createObjectStore('sessions', {
-              keyPath: 'id'
-            });
-          }
-        };
+      switch (this.evolutionState) {
 
-        request.onsuccess = async (e) => {
+        case 'idle':
+          return 'Stop';
 
-          this.db = e.target.result;
+        case 'running':
+          return 'Stop';
 
-          await this.checkRestorableSession();
-        };
-      },
+        case 'paused':
+          return 'Resume';
+      }
+    }
 
-      renderTree(
-        node,
-        x = 600,
-        y = 40,
-        spread = 300,
-        parent = null,
-        result = []
-      ) {
+  },
 
-        if (node == null) {
-          return result;
+  mounted() {
+    this.initDB();
+    this.drawCanvas();
+    window.addEventListener(
+      'beforeunload',
+      () => {
+
+        if (
+          this.evolutionState === 'running'
+        ) {
+          this.saveCheckpoint();
         }
+      }
+    );
+  },
 
-        // =========================
-        // TERMINAL NODE
-        // =========================
+  methods: {
 
-        if (typeof node === 'string') {
+    initDB() {
 
-          result.push({
-            x,
-            y,
-            label: node,
-            color: 'lightgreen',
-            parent
+      const request = indexedDB.open('gp-db', 2);
+
+      request.onupgradeneeded = (e) => {
+
+        const db = e.target.result;
+
+        if (!db.objectStoreNames.contains('bestPrograms')) {
+
+          db.createObjectStore('bestPrograms', {
+            keyPath: 'id',
+            autoIncrement: true
           });
-
-          return result;
         }
 
-        // ERC number node
-        if (typeof node === 'number') {
+        if (!db.objectStoreNames.contains('sessions')) {
 
-          result.push({
-            x,
-            y,
-            label: node.toFixed(2),
-            color: 'khaki',
-            parent
+          db.createObjectStore('sessions', {
+            keyPath: 'id'
           });
-
-          return result;
         }
+      };
 
-        // =========================
-        // OPERATOR NODE
-        // =========================
+      request.onsuccess = async (e) => {
+
+        this.db = e.target.result;
+
+        await this.checkRestorableSession();
+      };
+    },
+
+    renderTree(
+      node,
+      x = 600,
+      y = 40,
+      spread = 300,
+      parent = null,
+      result = []
+    ) {
+
+      if (node == null) {
+        return result;
+      }
+
+      // =========================
+      // TERMINAL NODE
+      // =========================
+
+      if (typeof node === 'string') {
 
         result.push({
           x,
           y,
-          label: node.op,
-          color: 'orange',
+          label: node,
+          color: 'lightgreen',
           parent
         });
 
-        // unary operator
-        if (node.child) {
+        return result;
+      }
 
-          this.renderTree(
-            node.child,
-            x,
-            y + 80,
-            spread / 1.5, {
-              x,
-              y
-            },
-            result
-          );
+      // ERC number node
+      if (typeof node === 'number') {
 
-          return result;
-        }
+        result.push({
+          x,
+          y,
+          label: node.toFixed(2),
+          color: 'khaki',
+          parent
+        });
 
-        // binary operator
+        return result;
+      }
+
+      // =========================
+      // OPERATOR NODE
+      // =========================
+
+      result.push({
+        x,
+        y,
+        label: node.op,
+        color: 'orange',
+        parent
+      });
+
+      // unary operator
+      if (node.child) {
+
         this.renderTree(
-          node.left,
-          x - spread,
+          node.child,
+          x,
           y + 80,
-          spread / 2, {
-            x,
-            y
-          },
-          result
-        );
-
-        this.renderTree(
-          node.right,
-          x + spread,
-          y + 80,
-          spread / 2, {
+          spread / 1.5, {
             x,
             y
           },
@@ -659,964 +633,985 @@ const Home = {
         );
 
         return result;
-      },
-    
+      }
+
+      // binary operator
+      this.renderTree(
+        node.left,
+        x - spread,
+        y + 80,
+        spread / 2, {
+          x,
+          y
+        },
+        result
+      );
+
+      this.renderTree(
+        node.right,
+        x + spread,
+        y + 80,
+        spread / 2, {
+          x,
+          y
+        },
+        result
+      );
+
+      return result;
+    },
+
     saveBest() {
-    
+
       if (!this.db) return;
-    
+
       if (
         this.bestFitness <=
         this.lastSavedBestFitness
       ) {
         return;
       }
-    
+
       this.lastSavedBestFitness =
         this.bestFitness;
-    
+
       const tx =
         this.db.transaction(
           ['bestPrograms'],
           'readwrite'
         );
-    
+
       const store =
         tx.objectStore('bestPrograms');
-    
+
       store.add({
-    
+
         timestamp: Date.now(),
-    
-        fitness:
-          this.bestFitness,
-    
-        tree:
-          this.compressTree(this.best),
-    
-        generation:
-          this.generation
+
+        fitness: this.bestFitness,
+
+        tree: this.compressTree(this.best),
+
+        generation: this.generation
       });
     },
 
-      startEvolution() {
-        if (this.worker) {
-          this.worker.terminate();
+    startEvolution() {
+      if (this.worker) {
+        this.worker.terminate();
+      }
+
+      this.evolutionState = 'running';
+
+      this.generation = 0;
+      this.history = [];
+      this.worker = new Worker('worker.js');
+
+      this.bindWorker();
+
+      this.worker.postMessage({
+        type: 'start',
+        config: {
+          targetFormula: this.targetFormula,
+          minX: this.minX,
+          maxX: this.maxX,
+          populationSize: this.populationSize,
+          minError: this.minError,
+          maxGenerations: this.maxGenerations,
+          operators: [...this.enabledOperators],
+          mutationRate: this.mutationRate,
+          crossoverRate: this.crossoverRate,
+          elitismRate: this.elitismRate,
+          tournamentSize: this.tournamentSize,
+          treeDepth: this.treeDepth,
+          dataMode: this.dataMode,
+          dataset: JSON.parse(JSON.stringify(this.uploadedData))
+        }
+      });
+    },
+
+    stopEvolution() {
+
+      if (!this.worker) {
+        return;
+      }
+
+      this.worker.postMessage({
+        type: 'stop'
+      });
+
+      this.evolutionState = 'paused';
+    },
+
+    resumeEvolution() {
+
+      if (!this.worker) {
+        return;
+      }
+
+      this.worker.postMessage({
+        type: 'resume',
+
+        config: {
+
+          targetFormula: this.targetFormula,
+          minX: this.minX,
+          maxX: this.maxX,
+          populationSize: this.populationSize,
+          minError: this.minError,
+          maxGenerations: this.maxGenerations,
+          operators: [...this.enabledOperators],
+          mutationRate: this.mutationRate,
+          crossoverRate: this.crossoverRate,
+          elitismRate: this.elitismRate,
+          tournamentSize: this.tournamentSize,
+          treeDepth: this.treeDepth,
+          dataMode: this.dataMode,
+          dataset: JSON.parse(
+            JSON.stringify(this.uploadedData)
+          )
+        }
+      });
+
+    },
+
+    evaluateTree(node, x) {
+
+      if (node == null) {
+        return 0;
+      }
+
+      // terminal
+      if (typeof node === 'string') {
+
+        if (node === 'x') {
+          return x;
         }
 
-        this.evolutionState = 'running';
+        return Number(node);
+      }
 
-        this.generation = 0;
-        this.history = [];
-        this.worker = new Worker('worker.js');
+      // unary
+      if (node.child) {
 
-        this.bindWorker();
-
-        this.worker.postMessage({
-          type: 'start',
-          config: {
-            targetFormula: this.targetFormula,
-            minX: this.minX,
-            maxX: this.maxX,
-            populationSize: this.populationSize,
-            minError: this.minError,
-            maxGenerations: this.maxGenerations,
-            operators: [...this.enabledOperators],
-            mutationRate: this.mutationRate,
-            crossoverRate: this.crossoverRate,
-            elitismRate: this.elitismRate,
-            tournamentSize: this.tournamentSize,
-            treeDepth: this.treeDepth,
-            dataMode: this.dataMode,
-            dataset: JSON.parse(JSON.stringify(this.uploadedData))
-          }
-        });
-      },
-
-      stopEvolution() {
-
-        if (!this.worker) {
-          return;
-        }
-
-        this.worker.postMessage({
-          type: 'stop'
-        });
-
-        this.evolutionState = 'paused';
-      },
-
-      resumeEvolution() {
-
-        if (!this.worker) {
-          return;
-        }
-
-        this.worker.postMessage({
-          type: 'resume',
-
-          config: {
-
-            targetFormula: this.targetFormula,
-            minX: this.minX,
-            maxX: this.maxX,
-            populationSize: this.populationSize,
-            minError: this.minError,
-            maxGenerations: this.maxGenerations,
-            operators: [...this.enabledOperators],
-            mutationRate: this.mutationRate,
-            crossoverRate: this.crossoverRate,
-            elitismRate: this.elitismRate,
-            tournamentSize: this.tournamentSize,
-            treeDepth: this.treeDepth,
-            dataMode: this.dataMode,
-            dataset: JSON.parse(
-              JSON.stringify(this.uploadedData)
-            )
-          }
-        });
-
-      },
-
-      evaluateTree(node, x) {
-
-        if (node == null) {
-          return 0;
-        }
-
-        // terminal
-        if (typeof node === 'string') {
-
-          if (node === 'x') {
-            return x;
-          }
-
-          return Number(node);
-        }
-
-        // unary
-        if (node.child) {
-
-          const v =
-            this.evaluateTree(node.child, x);
-
-          switch (node.op) {
-
-            case 'sin':
-              return Math.sin(v);
-
-            case 'cos':
-              return Math.cos(v);
-
-            case 'tan':
-              return Math.tan(v);
-
-            case 'sinh':
-              return Math.sinh(v);
-
-            case 'cosh':
-              return Math.cosh(v);
-
-            case 'tanh':
-              return Math.tanh(v);
-
-            case 'asin':
-              return Math.asin(v);
-
-            case 'acos':
-              return Math.acos(v);
-
-            case 'atan':
-              return Math.atan(v);
-
-            case 'asinh':
-              return Math.asinh(v);
-
-            case 'acosh':
-              return Math.acosh(v);
-
-            case 'atanh':
-              return Math.atanh(v);
-
-            case 'log':
-              return Math.log(v);
-
-            case 'log2':
-              return Math.log2(v);
-
-            case 'log10':
-              return Math.log10(v);
-
-            case 'exp':
-              return Math.exp(v);
-
-            case 'sqrt':
-              return Math.sqrt(v);
-
-            case 'cbrt':
-              return Math.cbrt(v);
-
-            default:
-              return 0;
-          }
-        }
-
-        // binary
-        const left =
-          this.evaluateTree(node.left, x);
-
-        const right =
-          this.evaluateTree(node.right, x);
+        const v =
+          this.evaluateTree(node.child, x);
 
         switch (node.op) {
 
-          case '+':
-            return left + right;
+          case 'sin':
+            return Math.sin(v);
 
-          case '-':
-            return left - right;
+          case 'cos':
+            return Math.cos(v);
 
-          case '*':
-            return left * right;
+          case 'tan':
+            return Math.tan(v);
 
-          case '/':
-            return left / right;
+          case 'sinh':
+            return Math.sinh(v);
 
-          case 'pow':
-            return Math.pow(left, right);
+          case 'cosh':
+            return Math.cosh(v);
+
+          case 'tanh':
+            return Math.tanh(v);
+
+          case 'asin':
+            return Math.asin(v);
+
+          case 'acos':
+            return Math.acos(v);
+
+          case 'atan':
+            return Math.atan(v);
+
+          case 'asinh':
+            return Math.asinh(v);
+
+          case 'acosh':
+            return Math.acosh(v);
+
+          case 'atanh':
+            return Math.atanh(v);
+
+          case 'log':
+            return Math.log(v);
+
+          case 'log2':
+            return Math.log2(v);
+
+          case 'log10':
+            return Math.log10(v);
+
+          case 'exp':
+            return Math.exp(v);
+
+          case 'sqrt':
+            return Math.sqrt(v);
+
+          case 'cbrt':
+            return Math.cbrt(v);
+
+          default:
+            return 0;
         }
+      }
 
-        return 0;
-      },
+      // binary
+      const left =
+        this.evaluateTree(node.left, x);
 
-      drawCanvas() {
-        const canvas = this.$refs.canvas;
+      const right =
+        this.evaluateTree(node.right, x);
 
-        if (!canvas) return;
+      switch (node.op) {
 
-        const ctx = canvas.getContext('2d');
+        case '+':
+          return left + right;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        case '-':
+          return left - right;
 
-        // =========================
-        // FIND DATA RANGE
-        // =========================
+        case '*':
+          return left * right;
 
-        let points = this.sampleData || [];
+        case '/':
+          return left / right;
 
-        if (!points.length) return;
+        case 'pow':
+          return Math.pow(left, right);
+      }
 
-        const xs = points.map(p => p.x);
-        const ys = points.map(p => p.y);
+      return 0;
+    },
 
-        const minX = Math.min(...xs);
-        const maxX = Math.max(...xs);
+    drawCanvas() {
+      const canvas = this.$refs.canvas;
 
-        let minY = Math.min(...ys);
-        let maxY = Math.max(...ys);
+      if (!canvas) return;
 
-        if (minY === maxY) {
-          minY -= 1;
-          maxY += 1;
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // =========================
+      // FIND DATA RANGE
+      // =========================
+
+      let points = this.sampleData || [];
+
+      if (!points.length) return;
+
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
+
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+
+      let minY = Math.min(...ys);
+      let maxY = Math.max(...ys);
+
+      if (minY === maxY) {
+        minY -= 1;
+        maxY += 1;
+      }
+
+      const padding = 20;
+
+      function toScreenX(x) {
+        return padding +
+          ((x - minX) / (maxX - minX)) *
+          (canvas.width - padding * 2);
+      }
+
+      function toScreenY(y) {
+        return canvas.height - padding -
+          ((y - minY) / (maxY - minY)) *
+          (canvas.height - padding * 2);
+      }
+
+      // =========================
+      // DRAW GP CURVE FIRST
+      // =========================
+
+      ctx.beginPath();
+
+      let first = true;
+
+      for (let px = 0; px < canvas.width; px++) {
+
+        const logicalX =
+          minX + (px / canvas.width) * (maxX - minX);
+
+        const y =
+          this.evaluateTree(this.best, logicalX);
+
+        if (!Number.isFinite(y)) continue;
+
+        const screenX = toScreenX(logicalX);
+        const screenY = toScreenY(y);
+
+        if (first) {
+          ctx.moveTo(screenX, screenY);
+          first = false;
+        } else {
+          ctx.lineTo(screenX, screenY);
         }
+      }
 
-        const padding = 20;
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-        function toScreenX(x) {
-          return padding +
-            ((x - minX) / (maxX - minX)) *
-            (canvas.width - padding * 2);
+      // =========================
+      // DOWNSAMPLE DATA
+      // =========================
+
+      const maxPoints = 30;
+
+      let sampled = points;
+
+      if (points.length > maxPoints) {
+
+        sampled = [];
+
+        const step =
+          points.length / maxPoints;
+
+        for (let i = 0; i < maxPoints; i++) {
+          sampled.push(
+            points[Math.floor(i * step)]
+          );
         }
+      }
 
-        function toScreenY(y) {
-          return canvas.height - padding -
-            ((y - minY) / (maxY - minY)) *
-            (canvas.height - padding * 2);
-        }
+      // =========================
+      // DRAW DATA POINTS LAST
+      // =========================
 
-        // =========================
-        // DRAW GP CURVE FIRST
-        // =========================
+      ctx.fillStyle = 'cyan';
+
+      for (const p of sampled) {
+
+        const sx = toScreenX(p.x);
+        const sy = toScreenY(p.y);
 
         ctx.beginPath();
 
-        let first = true;
+        ctx.arc(
+          sx,
+          sy,
+          5, // bigger point radius
+          0,
+          Math.PI * 2
+        );
 
-        for (let px = 0; px < canvas.width; px++) {
+        ctx.fill();
+      }
+    },
 
-          const logicalX =
-            minX + (px / canvas.width) * (maxX - minX);
+    handleFileUpload(event) {
 
-          const y =
-            this.evaluateTree(this.best, logicalX);
+      const file = event.target.files[0];
 
-          if (!Number.isFinite(y)) continue;
+      if (!file) return;
 
-          const screenX = toScreenX(logicalX);
-          const screenY = toScreenY(y);
+      this.uploadedFileName = file.name;
 
-          if (first) {
-            ctx.moveTo(screenX, screenY);
-            first = false;
-          } else {
-            ctx.lineTo(screenX, screenY);
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+
+        const text = e.target.result;
+
+        const lines =
+          text.split(/\r?\n/);
+
+        const data = [];
+
+        for (let i = 1; i < lines.length; i++) {
+
+          const line = lines[i].trim();
+
+          if (!line) continue;
+
+          const parts = line.split(',');
+
+          if (parts.length < 2) continue;
+
+          const x = Number(parts[0]);
+          const y = Number(parts[1]);
+
+          if (
+            Number.isFinite(x) &&
+            Number.isFinite(y)
+          ) {
+            data.push({
+              x,
+              y
+            });
           }
         }
 
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        this.uploadedData = data;
 
-        // =========================
-        // DOWNSAMPLE DATA
-        // =========================
+        console.log(
+          'Dataset loaded:',
+          data.length
+        );
+      };
 
-        const maxPoints = 30;
+      reader.readAsText(file);
+    },
 
-        let sampled = points;
+    mainAction() {
 
-        if (points.length > maxPoints) {
+      if (this.evolutionState === 'idle') {
+        this.startEvolution();
+        return;
+      }
 
-          sampled = [];
+      if (this.evolutionState === 'paused') {
+        this.clearResults();
+      }
+    },
 
-          const step =
-            points.length / maxPoints;
+    secondaryAction() {
 
-          for (let i = 0; i < maxPoints; i++) {
-            sampled.push(
-              points[Math.floor(i * step)]
-            );
-          }
-        }
+      if (this.evolutionState === 'running') {
+        this.stopEvolution();
+        return;
+      }
 
-        // =========================
-        // DRAW DATA POINTS LAST
-        // =========================
+      if (this.evolutionState === 'paused') {
+        this.resumeEvolution();
+      }
+    },
 
-        ctx.fillStyle = 'cyan';
+    clearResults() {
 
-        for (const p of sampled) {
+      const confirmed =
+        confirm(
+          'Clear all evolution results?'
+        );
 
-          const sx = toScreenX(p.x);
-          const sy = toScreenY(p.y);
+      if (!confirmed) {
+        return;
+      }
 
-          ctx.beginPath();
+      // stop worker completely
 
-          ctx.arc(
-            sx,
-            sy,
-            5, // bigger point radius
-            0,
-            Math.PI * 2
-          );
+      if (this.worker) {
 
-          ctx.fill();
-        }
-      },
+        this.worker.terminate();
 
-      handleFileUpload(event) {
+        this.worker = null;
+      }
 
-        const file = event.target.files[0];
+      // clear memory
 
-        if (!file) return;
+      this.best = null;
 
-        this.uploadedFileName = file.name;
+      this.bestFitness = 0;
 
-        const reader = new FileReader();
+      this.expressionText = '';
 
-        reader.onload = (e) => {
+      this.history = [];
 
-          const text = e.target.result;
+      this.generation = 0;
 
-          const lines =
-            text.split(/\r?\n/);
+      // clear graph
 
-          const data = [];
+      this.drawCanvas();
 
-          for (let i = 1; i < lines.length; i++) {
+      // clear indexedDB
 
-            const line = lines[i].trim();
-
-            if (!line) continue;
-
-            const parts = line.split(',');
-
-            if (parts.length < 2) continue;
-
-            const x = Number(parts[0]);
-            const y = Number(parts[1]);
-
-            if (
-              Number.isFinite(x) &&
-              Number.isFinite(y)
-            ) {
-              data.push({
-                x,
-                y
-              });
-            }
-          }
-
-          this.uploadedData = data;
-
-          console.log(
-            'Dataset loaded:',
-            data.length
-          );
-        };
-
-        reader.readAsText(file);
-      },
-
-      mainAction() {
-
-        if (this.evolutionState === 'idle') {
-          this.startEvolution();
-          return;
-        }
-
-        if (this.evolutionState === 'paused') {
-          this.clearResults();
-        }
-      },
-
-      secondaryAction() {
-
-        if (this.evolutionState === 'running') {
-          this.stopEvolution();
-          return;
-        }
-
-        if (this.evolutionState === 'paused') {
-          this.resumeEvolution();
-        }
-      },
-
-      clearResults() {
-
-        const confirmed =
-          confirm(
-            'Clear all evolution results?'
-          );
-
-        if (!confirmed) {
-          return;
-        }
-
-        // stop worker completely
-
-        if (this.worker) {
-
-          this.worker.terminate();
-
-          this.worker = null;
-        }
-
-        // clear memory
-
-        this.best = null;
-
-        this.bestFitness = 0;
-
-        this.expressionText = '';
-
-        this.history = [];
-
-        this.generation = 0;
-
-        // clear graph
-
-        this.drawCanvas();
-
-        // clear indexedDB
-
-        if (this.db) {
-
-          const tx =
-            this.db.transaction(
-              ['bestPrograms'],
-              'readwrite'
-            );
-
-          const store =
-            tx.objectStore(
-              'bestPrograms'
-            );
-
-          store.clear();
-        }
-
-        this.evolutionState = 'idle';
-
-        if (this.db) {
-
-          const tx = this.db.transaction(
-            ['sessions'],
-            'readwrite'
-          );
-
-          const store = tx.objectStore('sessions');
-
-          store.delete('latest');
-        }
-
-      },
-
-      async saveCheckpoint() {
-
-        if (!this.db || !this.worker) {
-          return;
-        }
-
-        // save only if improved
-
-        if (
-          this.bestFitness <=
-          this.lastCheckpointFitness
-        ) {
-          return;
-        }
-
-        this.lastCheckpointFitness =
-          this.bestFitness;
-
-        // build elite population
-
-        const elitePopulation =
-          this.buildElitePopulation(
-            this.latestPopulation || []
-          );
-
-        // strip + compress
-
-        const compactPopulation =
-          this.stripPopulation(
-            elitePopulation
-          );
-
-        const state = {
-
-          id: 'latest',
-
-          timestamp: Date.now(),
-
-          generation: this.generation,
-
-          population: compactPopulation,
-
-          best: this.compressTree(
-            this.best
-          ),
-
-          bestFitness: this.bestFitness,
-
-          history: JSON.parse(
-            JSON.stringify(
-              this.history
-            )
-          ),
-
-          expressionText: this.expressionText,
-
-          evolutionState: this.evolutionState,
-
-          config: {
-
-            targetFormula: this.targetFormula,
-
-            minX: this.minX,
-
-            maxX: this.maxX,
-
-            populationSize: this.populationSize,
-
-            minError: this.minError,
-
-            maxGenerations: this.maxGenerations,
-
-            operators: [...this.enabledOperators],
-
-            mutationRate: this.mutationRate,
-
-            crossoverRate: this.crossoverRate,
-
-            elitismRate: this.elitismRate,
-
-            tournamentSize: this.tournamentSize,
-
-            treeDepth: this.treeDepth,
-
-            dataMode: this.dataMode,
-
-            dataset: JSON.parse(
-              JSON.stringify(
-                this.uploadedData
-              )
-            )
-          }
-        };
+      if (this.db) {
 
         const tx =
           this.db.transaction(
-            ['sessions'],
+            ['bestPrograms'],
             'readwrite'
           );
 
         const store =
           tx.objectStore(
-            'sessions'
+            'bestPrograms'
           );
 
-        store.put(state);
-      },
+        store.clear();
+      }
 
-      async checkRestorableSession() {
+      this.evolutionState = 'idle';
 
-        if (!this.db) {
-          return;
-        }
+      if (this.db) {
 
         const tx = this.db.transaction(
           ['sessions'],
-          'readonly'
+          'readwrite'
         );
 
         const store = tx.objectStore('sessions');
 
-        const request = store.get('latest');
+        store.delete('latest');
+      }
 
-        request.onsuccess = () => {
+    },
 
-          const result = request.result;
+    async saveCheckpoint() {
 
-          this.hasRestorableSession = !!result;
+      if (!this.db || !this.worker) {
+        return;
+      }
 
-          if (!result) {
-            return;
-          }
+      // save only if improved
 
-          const confirmed = confirm(
-            'Restore previous GP evolution session?'
-          );
+      if (
+        this.bestFitness <=
+        this.lastCheckpointFitness
+      ) {
+        return;
+      }
 
-          if (!confirmed) {
-            return;
-          }
+      this.lastCheckpointFitness =
+        this.bestFitness;
 
-          this.restoreSession(result);
-        };
-      },
+      // build elite population
 
-      restoreSession(state) {
+      const elitePopulation =
+        this.buildElitePopulation(
+          this.latestPopulation || []
+        );
 
-        this.generation =
-          state.generation || 0;
+      // strip + compress
 
-        this.best =
-          this.decompressTree(
-            state.best
-          );
+      const compactPopulation =
+        this.stripPopulation(
+          elitePopulation
+        );
 
-        this.bestFitness =
-          state.bestFitness || 0;
+      const state = {
 
-        this.history =
-          state.history || [];
+        id: 'latest',
 
-        this.expressionText =
-          state.expressionText || '';
+        timestamp: Date.now(),
 
-        this.evolutionState =
-          'paused';
+        generation: this.generation,
 
-        const config =
-          state.config || {};
+        population: compactPopulation,
 
-        this.targetFormula =
-          config.targetFormula || 'x*x + 2';
+        best: this.compressTree(
+          this.best
+        ),
 
-        this.minX =
-          config.minX ?? -5;
+        bestFitness: this.bestFitness,
 
-        this.maxX =
-          config.maxX ?? 5;
+        history: JSON.parse(
+          JSON.stringify(
+            this.history
+          )
+        ),
 
-        this.populationSize =
-          config.populationSize || 100;
+        expressionText: this.expressionText,
 
-        this.minError =
-          config.minError || 0.01;
+        evolutionState: this.evolutionState,
 
-        this.maxGenerations =
-          config.maxGenerations || 1000;
+        config: {
 
-        this.enabledOperators =
-          config.operators || ['+', '-', '*'];
+          targetFormula: this.targetFormula,
 
-        this.mutationRate =
-          config.mutationRate || 0.1;
+          minX: this.minX,
 
-        this.crossoverRate =
-          config.crossoverRate || 0.7;
+          maxX: this.maxX,
 
-        this.elitismRate =
-          config.elitismRate || 0.05;
+          populationSize: this.populationSize,
 
-        this.tournamentSize =
-          config.tournamentSize || 5;
+          minError: this.minError,
 
-        this.treeDepth =
-          config.treeDepth || 4;
+          maxGenerations: this.maxGenerations,
 
-        this.dataMode =
-          config.dataMode || 'formula';
+          operators: [...this.enabledOperators],
 
-        this.uploadedData =
-          config.dataset || [];
+          mutationRate: this.mutationRate,
 
-        this.latestPopulation =
-          (state.population || [])
-          .map(individual => ({
+          crossoverRate: this.crossoverRate,
 
-            tree: this.decompressTree(
-              individual.tree
-            ),
+          elitismRate: this.elitismRate,
 
-            fitness: individual.fitness
-          }));
+          tournamentSize: this.tournamentSize,
 
-        this.worker = new Worker('worker.js');
+          treeDepth: this.treeDepth,
 
-        this.bindWorker();
+          dataMode: this.dataMode,
 
-        this.worker.postMessage({
-          type: 'restore',
-        
-          state: {
-            generation:
-              state.generation,
-        
-            population:
-              this.latestPopulation,
-        
-            config
-          }
-        });
+          dataset: JSON.parse(
+            JSON.stringify(
+              this.uploadedData
+            )
+          )
+        }
+      };
 
-        this.drawCanvas();
-      },
+      const tx =
+        this.db.transaction(
+          ['sessions'],
+          'readwrite'
+        );
 
-      bindWorker() {
+      const store =
+        tx.objectStore(
+          'sessions'
+        );
 
-        this.worker.onmessage = (e) => {
+      store.put(state);
+    },
 
-          const msg = e.data;
+    async checkRestorableSession() {
 
-          if (msg.type === 'update') {
+      if (!this.db) {
+        return;
+      }
 
-            this.best = msg.best;
+      const tx = this.db.transaction(
+        ['sessions'],
+        'readonly'
+      );
 
-            this.bestFitness = msg.fitness;
+      const store = tx.objectStore('sessions');
 
-            this.expressionText = msg.expression;
+      const request = store.get('latest');
 
-            this.generation = msg.generation;
+      request.onsuccess = () => {
 
-            this.latestPopulation =
-              msg.population;
+        const result = request.result;
 
-            this.history.unshift({
-              generation: msg.generation,
-              fitness: this.bestFitness,
-              error: msg.rawError,
-              r2: msg.r2,
-              expression: msg.expression
-            });
+        this.hasRestorableSession = !!result;
 
-            if (this.history.length > 3) {
-              this.history.pop();
-            }
-
-            this.drawCanvas();
-
-            this.saveBest();
-
-            if (
-              this.generation %
-              this.checkpointInterval === 0
-            ) {
-              this.saveCheckpoint();
-            }
-          }
-
-          if (msg.type === 'finished') {
-
-            this.evolutionState = 'paused';
-
-            this.saveCheckpoint();
-          }
-        };
-      },
-
-      compressTree(node) {
-
-        if (node == null) {
-          return null;
+        if (!result) {
+          return;
         }
 
-        // terminal
-        if (
-          typeof node === 'string' ||
-          typeof node === 'number'
-        ) {
-          return node;
+        const confirmed = confirm(
+          'Restore previous GP evolution session?'
+        );
+
+        if (!confirmed) {
+          return;
         }
 
-        // unary
-        if (node.child) {
+        this.restoreSession(result);
+      };
+    },
 
-          return [
-            node.op,
-            this.compressTree(node.child)
-          ];
-        }
+    restoreSession(state) {
 
-        // binary
-        return [
-          node.op,
-          this.compressTree(node.left),
-          this.compressTree(node.right)
-        ];
-      },
+      this.generation =
+        state.generation || 0;
 
-      decompressTree(node) {
+      this.best =
+        this.decompressTree(
+          state.best
+        );
 
-        if (
-          typeof node === 'string' ||
-          typeof node === 'number'
-        ) {
-          return node;
-        }
+      this.bestFitness =
+        state.bestFitness || 0;
 
-        if (!Array.isArray(node)) {
-          return null;
-        }
+      this.history =
+        state.history || [];
 
-        // unary
-        if (node.length === 2) {
+      this.expressionText =
+        state.expressionText || '';
 
-          return {
-            op: node[0],
-            child: this.decompressTree(node[1])
-          };
-        }
+      this.evolutionState =
+        'paused';
 
-        // binary
-        return {
-          op: node[0],
+      const config =
+        state.config || {};
 
-          left: this.decompressTree(node[1]),
+      this.targetFormula =
+        config.targetFormula || 'x*x + 2';
 
-          right: this.decompressTree(node[2])
-        };
-      },
+      this.minX =
+        config.minX ?? -5;
 
-      stripPopulation(population) {
+      this.maxX =
+        config.maxX ?? 5;
 
-        return population.map(individual => ({
+      this.populationSize =
+        config.populationSize || 100;
 
-          tree: this.compressTree(
+      this.minError =
+        config.minError || 0.01;
+
+      this.maxGenerations =
+        config.maxGenerations || 1000;
+
+      this.enabledOperators =
+        config.operators || ['+', '-', '*'];
+
+      this.mutationRate =
+        config.mutationRate || 0.1;
+
+      this.crossoverRate =
+        config.crossoverRate || 0.7;
+
+      this.elitismRate =
+        config.elitismRate || 0.05;
+
+      this.tournamentSize =
+        config.tournamentSize || 5;
+
+      this.treeDepth =
+        config.treeDepth || 4;
+
+      this.dataMode =
+        config.dataMode || 'formula';
+
+      this.uploadedData =
+        config.dataset || [];
+
+      this.latestPopulation =
+        (state.population || [])
+        .map(individual => ({
+
+          tree: this.decompressTree(
             individual.tree
           ),
 
           fitness: individual.fitness
         }));
-      },
 
-      buildElitePopulation(population) {
+      this.worker = new Worker('worker.js');
 
-        if (!population?.length) {
-          return [];
+      this.bindWorker();
+
+      this.worker.postMessage({
+        type: 'restore',
+
+        state: {
+          generation: state.generation,
+
+          population: this.latestPopulation,
+
+          config
+        }
+      });
+
+      this.drawCanvas();
+    },
+
+    bindWorker() {
+
+      this.worker.onmessage = (e) => {
+
+        const msg = e.data;
+
+        if (msg.type === 'update') {
+
+          this.best = msg.best;
+
+          this.bestFitness = msg.fitness;
+
+          this.expressionText = msg.expression;
+
+          this.generation = msg.generation;
+
+          this.latestPopulation =
+            msg.population;
+
+          this.history.unshift({
+            generation: msg.generation,
+            fitness: this.bestFitness,
+            error: msg.rawError,
+            r2: msg.r2,
+            expression: msg.expression
+          });
+
+          if (this.history.length > 3) {
+            this.history.pop();
+          }
+
+          this.drawCanvas();
+
+          this.saveBest();
+
+          if (
+            this.generation %
+            this.checkpointInterval === 0
+          ) {
+            this.saveCheckpoint();
+          }
         }
 
-        const sorted = [...population]
-          .sort(
-            (a, b) =>
-            b.fitness - a.fitness
-          );
+        if (msg.type === 'finished') {
 
-        const eliteCount =
-          Math.max(
-            1,
-            Math.floor(
-              sorted.length *
-              this.eliteCheckpointRate
-            )
-          );
+          this.evolutionState = 'paused';
 
-        return sorted.slice(0, eliteCount);
+          this.saveCheckpoint();
+        }
+      };
+    },
+
+    compressTree(node) {
+
+      if (node == null) {
+        return null;
       }
 
-    };
+      // terminal
+      if (
+        typeof node === 'string' ||
+        typeof node === 'number'
+      ) {
+        return node;
+      }
 
-    const About = {
+      // unary
+      if (node.child) {
 
-      data() {
+        return [
+          node.op,
+          this.compressTree(node.child)
+        ];
+      }
+
+      // binary
+      return [
+        node.op,
+        this.compressTree(node.left),
+        this.compressTree(node.right)
+      ];
+    },
+
+    decompressTree(node) {
+
+      if (
+        typeof node === 'string' ||
+        typeof node === 'number'
+      ) {
+        return node;
+      }
+
+      if (!Array.isArray(node)) {
+        return null;
+      }
+
+      // unary
+      if (node.length === 2) {
+
         return {
-          content: 'Loading README.md ...'
+          op: node[0],
+          child: this.decompressTree(node[1])
         };
-      },
+      }
 
-      async mounted() {
+      // binary
+      return {
+        op: node[0],
 
-        try {
+        left: this.decompressTree(node[1]),
 
-          const response = await fetch(
-            'https://raw.githubusercontent.com/bowo-prasetyo/genetic-programming/main/README.md'
-          );
+        right: this.decompressTree(node[2])
+      };
+    },
 
-          const markdown = await response.text();
+    stripPopulation(population) {
 
-          // Optional:
-          // convert markdown -> HTML
+      return population.map(individual => ({
 
-          this.content = marked.parse(markdown);
+        tree: this.compressTree(
+          individual.tree
+        ),
 
-        } catch (e) {
+        fitness: individual.fitness
+      }));
+    },
 
-          this.content =
-            '<p>Failed to load README.md</p>';
+    buildElitePopulation(population) {
 
-          console.error(e);
-        }
-      },
+      if (!population?.length) {
+        return [];
+      }
 
-      template: `
+      const sorted = [...population]
+        .sort(
+          (a, b) =>
+          b.fitness - a.fitness
+        );
+
+      const eliteCount =
+        Math.max(
+          1,
+          Math.floor(
+            sorted.length *
+            this.eliteCheckpointRate
+          )
+        );
+
+      return sorted.slice(0, eliteCount);
+    }
+  }
+};
+
+const About = {
+
+  data() {
+    return {
+      content: 'Loading README.md ...'
+    };
+  },
+
+  async mounted() {
+
+    try {
+
+      const response = await fetch(
+        'https://raw.githubusercontent.com/bowo-prasetyo/genetic-programming/main/README.md'
+      );
+
+      const markdown = await response.text();
+
+      // Optional:
+      // convert markdown -> HTML
+
+      this.content = marked.parse(markdown);
+
+    } catch (e) {
+
+      this.content =
+        '<p>Failed to load README.md</p>';
+
+      console.error(e);
+    }
+  },
+
+  template: `
     <div class="container">
 
       <div v-html="content"></div>
 
     </div>
   `
-    };
+};
 
-    const routes = [{
-        path: '/',
-        component: Home
-      },
-      {
-        path: '/about',
-        component: About
-      }
-    ];
+const routes = [{
+    path: '/',
+    component: Home
+  },
+  {
+    path: '/about',
+    component: About
+  }
+];
 
-    const router = VueRouter.createRouter({
-      history: VueRouter.createWebHashHistory(),
-      routes
-    });
+const router = VueRouter.createRouter({
+  history: VueRouter.createWebHashHistory(),
+  routes
+});
 
-    const app = Vue.createApp({});
+const app = Vue.createApp({});
 
-    app.use(router);
+app.use(router);
 
-    app.mount('#app');
+app.mount('#app');
