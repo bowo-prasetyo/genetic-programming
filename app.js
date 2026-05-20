@@ -420,7 +420,9 @@ const Home = {
       // running
       // paused
       checkpointInterval: 1,
-      hasRestorableSession: false
+      hasRestorableSession: false,
+      eliteCheckpointRate: 0.2,
+      lastCheckpointFitness: -Infinity
     };
   },
 
@@ -1140,53 +1142,125 @@ const Home = {
     return;
   }
 
+  // save only if improved
+
+  if (
+    this.bestFitness <=
+    this.lastCheckpointFitness
+  ) {
+    return;
+  }
+
+  this.lastCheckpointFitness =
+    this.bestFitness;
+
+  // build elite population
+
+  const elitePopulation =
+    this.buildElitePopulation(
+      this.latestPopulation || []
+    );
+
+  // strip + compress
+
+  const compactPopulation =
+    this.stripPopulation(
+      elitePopulation
+    );
+
   const state = {
+
     id: 'latest',
 
     timestamp: Date.now(),
 
-    generation: this.generation,
+    generation:
+      this.generation,
 
     population:
-      this.latestPopulation || [],
+      compactPopulation,
 
     best:
-      JSON.parse(JSON.stringify(this.best)),
+      this.compressTree(
+        this.best
+      ),
 
-    bestFitness: this.bestFitness,
+    bestFitness:
+      this.bestFitness,
 
     history:
-      JSON.parse(JSON.stringify(this.history)),
+      JSON.parse(
+        JSON.stringify(
+          this.history
+        )
+      ),
 
-    expressionText: this.expressionText,
+    expressionText:
+      this.expressionText,
 
-    evolutionState: this.evolutionState,
+    evolutionState:
+      this.evolutionState,
 
     config: {
-      targetFormula: this.targetFormula,
-      minX: this.minX,
-      maxX: this.maxX,
-      populationSize: this.populationSize,
-      minError: this.minError,
-      maxGenerations: this.maxGenerations,
-      operators: [...this.enabledOperators],
-      mutationRate: this.mutationRate,
-      crossoverRate: this.crossoverRate,
-      elitismRate: this.elitismRate,
-      tournamentSize: this.tournamentSize,
-      treeDepth: this.treeDepth,
-      dataMode: this.dataMode,
+
+      targetFormula:
+        this.targetFormula,
+
+      minX:
+        this.minX,
+
+      maxX:
+        this.maxX,
+
+      populationSize:
+        this.populationSize,
+
+      minError:
+        this.minError,
+
+      maxGenerations:
+        this.maxGenerations,
+
+      operators:
+        [...this.enabledOperators],
+
+      mutationRate:
+        this.mutationRate,
+
+      crossoverRate:
+        this.crossoverRate,
+
+      elitismRate:
+        this.elitismRate,
+
+      tournamentSize:
+        this.tournamentSize,
+
+      treeDepth:
+        this.treeDepth,
+
+      dataMode:
+        this.dataMode,
+
       dataset:
-        JSON.parse(JSON.stringify(this.uploadedData))
+        JSON.parse(
+          JSON.stringify(
+            this.uploadedData
+          )
+        )
     }
   };
 
-  const tx = this.db.transaction(
-    ['sessions'],
-    'readwrite'
-  );
+  const tx =
+    this.db.transaction(
+      ['sessions'],
+      'readwrite'
+    );
 
-  const store = tx.objectStore('sessions');
+  const store =
+    tx.objectStore(
+      'sessions'
+    );
 
   store.put(state);
 },
@@ -1367,7 +1441,115 @@ const Home = {
       this.saveCheckpoint();
     }
   };
-}
+},
+
+    compressTree(node) {
+
+  if (node == null) {
+    return null;
+  }
+
+  // terminal
+  if (
+    typeof node === 'string' ||
+    typeof node === 'number'
+  ) {
+    return node;
+  }
+
+  // unary
+  if (node.child) {
+
+    return [
+      node.op,
+      this.compressTree(node.child)
+    ];
+  }
+
+  // binary
+  return [
+    node.op,
+    this.compressTree(node.left),
+    this.compressTree(node.right)
+  ];
+},
+
+    decompressTree(node) {
+
+  if (
+    typeof node === 'string' ||
+    typeof node === 'number'
+  ) {
+    return node;
+  }
+
+  if (!Array.isArray(node)) {
+    return null;
+  }
+
+  // unary
+  if (node.length === 2) {
+
+    return {
+      op: node[0],
+      child:
+        this.decompressTree(node[1])
+    };
+  }
+
+  // binary
+  return {
+    op: node[0],
+
+    left:
+      this.decompressTree(node[1]),
+
+    right:
+      this.decompressTree(node[2])
+  };
+},
+
+    stripPopulation(population) {
+
+  return population.map(individual => ({
+
+    tree:
+      this.compressTree(
+        individual.tree
+      ),
+
+    fitness:
+      individual.fitness
+  }));
+},
+
+    buildElitePopulation(population) {
+
+  if (!population?.length) {
+    return [];
+  }
+
+  const sorted =
+    [...population]
+    .sort(
+      (a, b) =>
+        b.fitness - a.fitness
+    );
+
+  const eliteCount =
+    Math.max(
+      1,
+      Math.floor(
+        sorted.length *
+        this.eliteCheckpointRate
+      )
+    );
+
+  return sorted.slice(0, eliteCount);
+},
+
+    
+    
 };
 
 const About = {
