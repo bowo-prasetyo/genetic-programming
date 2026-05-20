@@ -1249,7 +1249,10 @@ const Home = {
             JSON.stringify(
               this.uploadedData
             )
-          )
+          ),
+
+          uploadedFileName: this.uploadedFileName
+
         }
       };
 
@@ -1370,7 +1373,11 @@ const Home = {
 
       this.uploadedData =
         config.dataset || [];
-
+      
+      this.uploadedFileName =
+        config.uploadedFileName ||
+        'Restored Dataset';
+      
       this.latestPopulation =
   (state.population || [])
   .map(individual =>
