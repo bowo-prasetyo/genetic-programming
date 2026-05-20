@@ -701,32 +701,64 @@ onmessage = (e) => {
   }
 
   if (msg.type === 'resume') {
-
-    // reload parameters
-
+  
+    // safety:
+    // rebuild if population missing
+  
+    if (
+      !population ||
+      population.length === 0
+    ) {
+      initPopulation(populationSize);
+    }
+  
     targetFormula =
       msg.config.targetFormula;
-    minError = msg.config.minError;
-    maxGenerations = msg.config.maxGenerations;
-    populationSize = msg.config.populationSize;
-    minX = msg.config.minX;
-    maxX = msg.config.maxX;
-    OPERATORS = buildOperators(msg.config.operators);
-    mutationRate = msg.config.mutationRate;
-    crossoverRate = msg.config.crossoverRate;
-    elitismRate = msg.config.elitismRate;
-    tournamentSize = msg.config.tournamentSize;
-    treeDepth = msg.config.treeDepth;
-    dataMode = msg.config.dataMode;
-    dataset = (msg.config.dataset || []).map(p => ({
-      x: Number(p.x),
-      y: Number(p.y)
-    })) || [];
+  
+    minError =
+      msg.config.minError;
+  
+    maxGenerations =
+      msg.config.maxGenerations;
+  
+    populationSize =
+      msg.config.populationSize;
+  
+    minX =
+      msg.config.minX;
+  
+    maxX =
+      msg.config.maxX;
+  
+    OPERATORS =
+      buildOperators(msg.config.operators);
+  
+    mutationRate =
+      msg.config.mutationRate;
+  
+    crossoverRate =
+      msg.config.crossoverRate;
+  
+    elitismRate =
+      msg.config.elitismRate;
+  
+    tournamentSize =
+      msg.config.tournamentSize;
+  
+    treeDepth =
+      msg.config.treeDepth;
+  
+    dataMode =
+      msg.config.dataMode;
+  
+    dataset =
+      (msg.config.dataset || []).map(p => ({
+        x: Number(p.x),
+        y: Number(p.y)
+      })) || [];
+  
     running = true;
-    loop();
-
-    running = true;
-
+  
     loop();
   }
   
@@ -799,10 +831,20 @@ onmessage = (e) => {
     ) {
       population.push(randomTree());
     }
-  
+      
     fitnessCache.clear();
-  
+    
+    // restored successfully
+    // stay paused until Resume clicked
+    
     running = false;
+    
+    postMessage({
+      type: 'restored',
+      generation,
+      populationSize: population.length
+    });
+    
   }
   
 };
