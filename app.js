@@ -749,6 +749,8 @@ const Home = {
         return;
       }
 
+      this.evolutionState = 'running';
+
       this.worker.postMessage({
         type: 'resume',
 
@@ -1190,7 +1192,7 @@ const Home = {
         elitePopulation.map(tree =>
           this.compressTree(tree)
         );
-            
+
       const state = {
 
         id: 'latest',
@@ -1373,17 +1375,17 @@ const Home = {
 
       this.uploadedData =
         config.dataset || [];
-      
+
       this.uploadedFileName =
         config.uploadedFileName ||
         'Restored Dataset';
-      
+
       this.latestPopulation =
-  (state.population || [])
-  .map(individual =>
-    this.decompressTree(individual.tree)
-  );
-      
+        (state.population || [])
+        .map(individual =>
+          this.decompressTree(individual.tree)
+        );
+
       this.worker = new Worker('worker.js');
 
       this.bindWorker();
