@@ -1187,10 +1187,10 @@ const Home = {
       // strip + compress
 
       const compactPopulation =
-        this.stripPopulation(
-          elitePopulation
+        elitePopulation.map(tree =>
+          this.compressTree(tree)
         );
-
+            
       const state = {
 
         id: 'latest',
@@ -1375,7 +1375,7 @@ const Home = {
         (state.population || [])
         .map(individual =>
           this.decompressTree(
-            individual.tree
+            individual
           )
         )
         .filter(Boolean);
