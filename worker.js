@@ -568,7 +568,8 @@ function evolve() {
     rawError: rawError,
     r2: result.r2,
     generation,
-    expression: treeToString(best)
+    expression: treeToString(best),
+    population: clone(population)
   });
 
   if (
@@ -729,5 +730,62 @@ onmessage = (e) => {
 
     loop();
   }
+
+  if (msg.type === 'restore') {
+
+  generation =
+    msg.state.generation || 0;
+
+  population =
+    msg.state.population || [];
+
+  const config =
+    msg.state.config || {};
+
+  targetFormula =
+    config.targetFormula;
+
+  minError =
+    config.minError;
+
+  maxGenerations =
+    config.maxGenerations;
+
+  populationSize =
+    config.populationSize;
+
+  minX = config.minX;
+
+  maxX = config.maxX;
+
+  OPERATORS =
+    buildOperators(config.operators);
+
+  mutationRate =
+    config.mutationRate;
+
+  crossoverRate =
+    config.crossoverRate;
+
+  elitismRate =
+    config.elitismRate;
+
+  tournamentSize =
+    config.tournamentSize;
+
+  treeDepth =
+    config.treeDepth;
+
+  dataMode =
+    config.dataMode;
+
+  dataset =
+    (config.dataset || []).map(p => ({
+      x: Number(p.x),
+      y: Number(p.y)
+    }));
+
+  running = false;
+}
 
 };
