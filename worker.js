@@ -817,12 +817,11 @@ onmessage = (e) => {
   
     // IMPORTANT:
     // extract only raw trees
-  
+
     population =
       (msg.state.population || [])
-      .map(p => p.tree || p)
       .filter(Boolean);
-  
+      
     // refill missing individuals
   
     while (
