@@ -422,7 +422,8 @@ const Home = {
         checkpointInterval: 1,
         hasRestorableSession: false,
         eliteCheckpointRate: 0.2,
-        lastCheckpointFitness: -Infinity
+        lastCheckpointFitness: -Infinity,
+        lastSavedBestFitness: -Infinity
       };
     },
 
@@ -659,19 +660,44 @@ const Home = {
 
         return result;
       },
-
-      saveBest() {
-        if (!this.db) return;
-
-        const tx = this.db.transaction(['bestPrograms'], 'readwrite');
-        const store = tx.objectStore('bestPrograms');
-
-        store.add({
-          timestamp: Date.now(),
-          program: JSON.parse(JSON.stringify(this.best)),
-          fitness: this.bestFitness
-        });
-      },
+    
+    saveBest() {
+    
+      if (!this.db) return;
+    
+      if (
+        this.bestFitness <=
+        this.lastSavedBestFitness
+      ) {
+        return;
+      }
+    
+      this.lastSavedBestFitness =
+        this.bestFitness;
+    
+      const tx =
+        this.db.transaction(
+          ['bestPrograms'],
+          'readwrite'
+        );
+    
+      const store =
+        tx.objectStore('bestPrograms');
+    
+      store.add({
+    
+        timestamp: Date.now(),
+    
+        fitness:
+          this.bestFitness,
+    
+        tree:
+          this.compressTree(this.best),
+    
+        generation:
+          this.generation
+      });
+    },
 
       startEvolution() {
         if (this.worker) {
@@ -1365,12 +1391,14 @@ const Home = {
 
         this.worker.postMessage({
           type: 'restore',
-
+        
           state: {
-            generation: state.generation,
-
-            population: state.population,
-
+            generation:
+              state.generation,
+        
+            population:
+              this.latestPopulation,
+        
             config
           }
         });
