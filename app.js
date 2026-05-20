@@ -1555,9 +1555,7 @@ const Home = {
           );
 
         return sorted.slice(0, eliteCount);
-      },
-
-
+      }
 
     };
 
