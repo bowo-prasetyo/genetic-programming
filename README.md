@@ -10,16 +10,25 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 
 ---
 
-## Features
+# Features
 
 * Browser-based Genetic Programming engine
 * Symbolic regression from mathematical formulas
 * Dataset fitting from uploaded CSV files
+* Persistent IndexedDB session restoration
+* Automatic crash/shutdown recovery
+* Fully resumable evolution after browser shutdown
+* Dataset persistence without re-uploading CSV files
+* Runtime pause/resume evolution
+* Runtime GP parameter reloading
+* Elite checkpointing system
+* Compressed population persistence
+* Best-program archival persistence
 * Real-time evolution updates
 * Canvas graph visualization
 * Recursive SVG expression tree renderer
 * Web Worker evolution engine
-* IndexedDB persistence
+* IndexedDB persistence layer
 * Tournament selection
 * Mutation and crossover
 * Elitism
@@ -32,19 +41,18 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 * Dataset scatter plotting
 * Automatic graph scaling
 * Transparent SVG background
-* Pause and resume evolution
-* Runtime parameter reloading on resume
 * Evolution state management
 * GitHub README-powered About page
 * Automatic README markdown rendering
 * Local evolution result clearing
 * IndexedDB cleanup support
+* Browser-only execution (no backend required)
 
 ---
 
-## Supported Operators
+# Supported Operators
 
-### Binary Operators
+## Binary Operators
 
 * `+`
 * `-`
@@ -52,7 +60,7 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 * `/`
 * `pow`
 
-### Unary Operators
+## Unary Operators
 
 * `sin`
 * `cos`
@@ -75,14 +83,14 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 
 ---
 
-## Technologies
+# Technologies
 
 * [Vue.js](https://vuejs.org/?utm_source=chatgpt.com)
 * [Vue Router](https://router.vuejs.org/?utm_source=chatgpt.com)
 * [Web Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API?utm_source=chatgpt.com)
 * [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API?utm_source=chatgpt.com)
 * [SVG](https://developer.mozilla.org/en-US/docs/Web/SVG?utm_source=chatgpt.com)
-* [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API?utm_source=chatgpt.com)
+* [IndexedDB API](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API?utm_source=chatgpt.com)
 * [Marked.js](https://marked.js.org/?utm_source=chatgpt.com)
 * [GitHub Raw Content](https://docs.github.com/en/repositories/working-with-files/using-files/viewing-and-understanding-files?utm_source=chatgpt.com)
 
@@ -94,7 +102,7 @@ Live Demo: [Browser Genetic Programming Web Interface](https://bowo-prasetyo.git
 
 The application supports two modes:
 
-### Generate From Formula
+## Generate From Formula
 
 Select:
 
@@ -122,7 +130,7 @@ The system automatically generates sample points from the formula and evolves pr
 
 ---
 
-### Upload Dataset
+## Upload Dataset
 
 Select:
 
@@ -144,7 +152,9 @@ The system will evolve programs that best fit the uploaded data.
 
 Uploaded datasets are fully used during GP fitness evaluation and evolution.
 
-Large datasets are only visually downsampled for canvas rendering performance.
+Large datasets are visually downsampled only for canvas rendering performance.
+
+Uploaded datasets are now automatically persisted into IndexedDB checkpoints and restored after browser shutdowns without requiring CSV re-uploading.
 
 ---
 
@@ -152,16 +162,16 @@ Large datasets are only visually downsampled for canvas rendering performance.
 
 The UI provides configurable GP parameters:
 
-| Parameter | Description |
-|---|---|
-| Population Size | Number of individuals |
-| Max Generations | Maximum evolution iterations |
-| Min Error | Stop threshold |
-| Mutation Rate | Mutation probability |
-| Crossover Rate | Crossover probability |
-| Elitism Rate | Percentage of elites preserved |
-| Tournament Size | Tournament selection size |
-| Tree Depth | Maximum generated tree depth |
+| Parameter       | Description                    |
+| --------------- | ------------------------------ |
+| Population Size | Number of individuals          |
+| Max Generations | Maximum evolution iterations   |
+| Min Error       | Stop threshold                 |
+| Mutation Rate   | Mutation probability           |
+| Crossover Rate  | Crossover probability          |
+| Elitism Rate    | Percentage of elites preserved |
+| Tournament Size | Tournament selection size      |
+| Tree Depth      | Maximum generated tree depth   |
 
 ---
 
@@ -181,6 +191,8 @@ Example configurations:
 
 ---
 
+# Evolution Workflow
+
 ## 4. Start Evolution
 
 Press:
@@ -193,6 +205,8 @@ When evolution is running:
 
 * All inputs become locked
 * Parameter controls are disabled
+* Data-source switching becomes disabled
+* Dataset upload becomes disabled
 * Only the `Stop` button remains active
 
 ---
@@ -208,10 +222,12 @@ to pause the evolution process.
 The application will:
 
 * Pause GP evolution
-* Preserve the entire population state
+* Preserve the evolved population
 * Preserve generation history
 * Preserve best evolved program
-* Keep IndexedDB data intact
+* Preserve datasets
+* Preserve runtime configuration
+* Preserve IndexedDB checkpoints
 
 After stopping:
 
@@ -231,16 +247,49 @@ to continue evolution from the previously paused population state.
 
 The system will:
 
-* Re-read all current GP parameter settings
-* Continue from the last evolved population
-* Preserve previously evolved individuals
+* Restore compressed population trees
+* Restore datasets from IndexedDB
+* Restore generation history
+* Restore best evolved programs
+* Continue from the previous population state
 * Continue generation counting
+* Re-enable full runtime evolution
 
-This allows experimentation with different mutation rates, crossover rates, operator sets, and other parameters during runtime evolution.
+Resume works even after:
+
+* Browser shutdown
+* Tab closing
+* Browser crash
+* Device restart
+
+No CSV re-upload is required anymore because datasets are stored inside IndexedDB checkpoints.
 
 ---
 
-## 7. Clear Results
+## 7. Automatic Session Restoration
+
+When the application starts, it automatically checks IndexedDB for restorable GP sessions.
+
+If a previous session exists, the application prompts:
+
+```txt
+Restore previous GP evolution session?
+```
+
+If restored, the system rebuilds:
+
+* Population
+* Expression trees
+* Best programs
+* Runtime configuration
+* Uploaded datasets
+* Evolution history
+
+The restored evolution can then continue seamlessly using the `Resume` button.
+
+---
+
+## 8. Clear Results
 
 Press:
 
@@ -251,10 +300,11 @@ to completely reset the application state.
 The application will:
 
 * Stop the worker
-* Remove all evolution history
+* Remove evolution history
 * Clear best evolved programs
 * Reset graph visualization
-* Clear IndexedDB stored results
+* Delete IndexedDB checkpoints
+* Delete stored sessions
 * Return UI to idle mode
 
 ---
@@ -284,11 +334,11 @@ The SVG renderer visualizes the best evolved program as a recursive tree structu
 
 Node colors:
 
-| Node Type | Color |
-|---|---|
-| Operator | Orange |
-| Variable | Light Green |
-| ERC Constant | Khaki |
+| Node Type    | Color       |
+| ------------ | ----------- |
+| Operator     | Orange      |
+| Variable     | Light Green |
+| ERC Constant | Khaki       |
 
 Unary operators are rendered with single-child branches.
 
@@ -310,9 +360,7 @@ This avoids degenerate solutions such as meaningless constant horizontal lines.
 
 The fitness system minimizes:
 
-```txt
-(1 - R²) + complexity penalty
-```
+(1 - R^2) + \text{complexity penalty}
 
 Programs producing invalid numeric outputs automatically receive infinite fitness penalties.
 
@@ -332,7 +380,7 @@ Example evolved constants:
 
 Mutation can also perturb numeric constants incrementally during evolution.
 
-This dramatically improves symbolic regression capability.
+This significantly improves symbolic regression capability.
 
 ---
 
@@ -360,15 +408,39 @@ Fitness caching reduces repeated tree evaluations and improves performance.
 
 ---
 
+# Persistence Architecture
+
+The system uses IndexedDB as a persistent local storage layer.
+
+Persisted components include:
+
+* Best evolved programs
+* Compressed population trees
+* Uploaded datasets
+* Runtime GP configuration
+* Evolution history
+* Current generation state
+
+The checkpoint system uses:
+
+* Elite population compression
+* Tree serialization
+* Automatic restoration
+* Crash-safe persistence
+
+Compressed tree storage dramatically reduces IndexedDB storage usage.
+
+---
+
 # Runtime Evolution States
 
 The UI uses three evolution states:
 
-| State | Description |
-|---|---|
-| `idle` | No evolution running |
-| `running` | Active evolution |
-| `paused` | Evolution paused and resumable |
+| State     | Description                    |
+| --------- | ------------------------------ |
+| `idle`    | No evolution running           |
+| `running` | Active evolution               |
+| `paused`  | Evolution paused and resumable |
 
 These states control:
 
@@ -376,6 +448,8 @@ These states control:
 * Input locking
 * Resume logic
 * Worker communication
+* Dataset upload locking
+* Runtime restoration behavior
 
 ---
 
@@ -425,7 +499,7 @@ Possible evolved approximation:
 
 # Example Datasets
 
-* [Salary Dataset - Simple linear regression](https://www.kaggle.com/datasets/abhishek14398/salary-dataset-simple-linear-regression)
+* [Salary Dataset - Simple linear regression](https://www.kaggle.com/datasets/abhishek14398/salary-dataset-simple-linear-regression?utm_source=chatgpt.com)
 
 Possible evolved result:
 
@@ -435,7 +509,7 @@ Possible evolved result:
 
 ---
 
-* [👩‍🏫 Student Scores - Simple 🗃️ Dataset](https://www.kaggle.com/datasets/samira1992/student-scores-simple-dataset)
+* [👩‍🏫 Student Scores - Simple 🗃️ Dataset](https://www.kaggle.com/datasets/samira1992/student-scores-simple-dataset?utm_source=chatgpt.com)
 
 Possible evolved result:
 
@@ -474,12 +548,31 @@ worker.js
 README.md
 ```
 
-| File | Description |
-|---|---|
-| `index.html` | Main application page |
-| `app.js` | Vue application and UI logic |
-| `worker.js` | Genetic Programming evolution engine |
-| `README.md` | Project documentation |
+| File         | Description                          |
+| ------------ | ------------------------------------ |
+| `index.html` | Main application page                |
+| `app.js`     | Vue application and UI logic         |
+| `worker.js`  | Genetic Programming evolution engine |
+| `README.md`  | Project documentation                |
+
+---
+
+# Current Capabilities
+
+The system now supports:
+
+* Fully browser-side GP evolution
+* Persistent resumable GP sessions
+* Browser crash recovery
+* Runtime evolution continuation
+* Dataset persistence
+* Elite checkpointing
+* Worker-based background evolution
+* Symbolic regression
+* CSV dataset fitting
+* Live visualization
+* Dynamic operator sets
+* Incremental GP experimentation
 
 ---
 
@@ -499,13 +592,16 @@ README.md
 * Program synthesis
 * JavaScript control-flow primitives (`if`, `while`, `for`)
 * Full program evolution instead of pure symbolic regression
-* Persistent resumable IndexedDB populations
 * Export/import GP sessions
 * Multiple-variable symbolic regression
 * Animated evolution playback
 * Operator weighting
 * Adaptive mutation rate
 * Distributed browser evolution
+* WebRTC peer-to-peer GP islands
+* Shared decentralized browser evolution
+* WASM acceleration
+* Auto-simplified symbolic expressions
 
 ---
 
