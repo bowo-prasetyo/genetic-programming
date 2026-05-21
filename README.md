@@ -608,3 +608,9 @@ The system now supports:
 # License
 
 MIT License
+
+---
+
+# Assisted By
+
+[ChatGPT](https://chatgpt.com/)
