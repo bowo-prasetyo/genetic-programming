@@ -1376,9 +1376,16 @@ const Home = {
       this.latestPopulation =
         (state.population || [])
         .map(individual =>
-          this.decompressTree(individual.tree)
-        );
+          this.decompressTree(individual)
+        )
+        .filter(Boolean);
 
+      this.lastCheckpointFitness =
+        this.bestFitness;
+      
+      this.lastSavedBestFitness =
+        this.bestFitness;
+      
       this.worker = new Worker('worker.js');
 
       this.bindWorker();
