@@ -422,8 +422,8 @@ const Home = {
       checkpointInterval: 1,
       hasRestorableSession: false,
       eliteCheckpointRate: 0.2,
-      lastCheckpointFitness: -Infinity,
-      lastSavedBestFitness: -Infinity
+      lastCheckpointFitness: Infinity,
+      lastSavedBestFitness: Infinity
     };
   },
 
@@ -666,7 +666,7 @@ const Home = {
       if (!this.db) return;
 
       if (
-        this.bestFitness <=
+        this.bestFitness >=
         this.lastSavedBestFitness
       ) {
         return;
@@ -1170,7 +1170,7 @@ const Home = {
       // save only if improved
 
       if (
-        this.bestFitness <=
+        this.bestFitness >=
         this.lastCheckpointFitness
       ) {
         return;
@@ -1179,20 +1179,13 @@ const Home = {
       this.lastCheckpointFitness =
         this.bestFitness;
 
-      // build elite population
-
-      const elitePopulation =
-        this.buildElitePopulation(
-          this.latestPopulation || []
-        );
-
       // strip + compress
-
       const compactPopulation =
-        elitePopulation.map(tree =>
+        (this.latestPopulation || [])
+        .map(tree =>
           this.compressTree(tree)
         );
-
+      
       const state = {
 
         id: 'latest',
@@ -1530,30 +1523,6 @@ const Home = {
 
         fitness: individual.fitness
       }));
-    },
-
-    buildElitePopulation(population) {
-
-      if (!population?.length) {
-        return [];
-      }
-
-      const sorted = [...population]
-        .sort(
-          (a, b) =>
-          b.fitness - a.fitness
-        );
-
-      const eliteCount =
-        Math.max(
-          1,
-          Math.floor(
-            sorted.length *
-            this.eliteCheckpointRate
-          )
-        );
-
-      return sorted.slice(0, eliteCount);
     }
   }
 };
